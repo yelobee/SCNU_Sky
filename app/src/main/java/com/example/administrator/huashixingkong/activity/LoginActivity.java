@@ -1,6 +1,10 @@
 package com.example.administrator.huashixingkong.activity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,6 +27,7 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
     private Button registerButton;
     private EditText textUserNumber = null;
     private EditText textPassword = null;
+    private SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,11 +39,33 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
 
         loginButton = (Button) findViewById(R.id.login);
         registerButton = (Button) findViewById(R.id.register);
+
+        preferences = getSharedPreferences("userData", Context.MODE_PRIVATE);
+
+
         loginButton.setOnClickListener(this);
         registerButton.setOnClickListener(this);
     }
 
-
+    Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what){
+                case 0:
+                    Toast.makeText(getApplicationContext(), "登录成功！", Toast.LENGTH_SHORT).show();
+                    Intent loginIntent = new Intent();
+                    loginIntent.setClass(LoginActivity.this, MainActivity.class);
+                    startActivity(loginIntent);
+                    break;
+                case 1:
+                    Toast.makeText(getApplicationContext(), "密码错误", Toast.LENGTH_SHORT).show();
+                    Intent loginIntent2 = new Intent();
+                    loginIntent2.setClass(LoginActivity.this, MainActivity.class);
+                    startActivity(loginIntent2);
+                    break;
+            }
+        }
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -67,33 +94,13 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
 
         switch (v.getId()){
             case R.id.login:
-                new Thread(){
-                    public void run(){
-                        boolean result = false;
-                        String name;
-                        String password;
-                        try {
-                            name = textUserNumber.getText().toString();
-                            name = new String(name.getBytes("ISO8859-1"), "UTF-8");
-                            password = textPassword.getText().toString();
-                            password = new String(password.getBytes("ISO8859-1"), "UTF-8");
-                            result = LoginHttpURLConnection.save(name, password);
-                        } catch (UnsupportedEncodingException e1) {
-                            // TODO Auto-generated catch block
-                            e1.printStackTrace();
-                        }
-                        if(result){
-                            //Toast.makeText(LoginActivity.this, "ok", Toast.LENGTH_SHORT).show();
-                            Log.d("abc","ok");
-                        }else{
-                            //Toast.makeText(LoginActivity.this, "error", Toast.LENGTH_SHORT).show();
-                            Log.d("abc","error");
-                        }
-                    }
-                }.start();
-                Intent loginIntent = new Intent();
-                loginIntent.setClass(LoginActivity.this,MainActivity.class);
-                startActivity(loginIntent);break;
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putString("username",textUserNumber.getText().toString());
+                editor.putString("password",textPassword.getText().toString());
+                editor.commit();
+                Thread loginThread = new Thread(new LoginThread());
+                loginThread.start();
+                break;
             case R.id.register:
                 Intent registerIntent = new Intent();
                 registerIntent.setClass(LoginActivity.this,RegisterActivity.class);
@@ -101,4 +108,35 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
             default:break;
         }
     }
+
+    class LoginThread implements Runnable{
+
+        @Override
+        public void run() {
+            boolean result = false;
+            String name;
+            String password;
+            try {
+                name = textUserNumber.getText().toString();
+                name = new String(name.getBytes("ISO8859-1"), "UTF-8");
+                password = textPassword.getText().toString();
+                password = new String(password.getBytes("ISO8859-1"), "UTF-8");
+                result = LoginHttpURLConnection.save(name, password);
+            } catch (UnsupportedEncodingException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+            Message msg = handler.obtainMessage();
+            if(result){
+                Log.d("abc","ok");
+                msg.what = 0;
+                handler.sendMessage(msg);
+            }else{
+                Log.d("abc","error");
+                msg.what = 1;
+                handler.sendMessage(msg);
+            }
+        }
+    }
+
 }

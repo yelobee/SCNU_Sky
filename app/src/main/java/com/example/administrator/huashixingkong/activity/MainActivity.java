@@ -1,5 +1,6 @@
 package com.example.administrator.huashixingkong.activity;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTabHost;
@@ -8,6 +9,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TabHost;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.administrator.huashixingkong.R;
 import com.example.administrator.huashixingkong.fragment.FragmentDiscuss;
@@ -36,6 +38,9 @@ public class MainActivity extends FragmentActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        SharedPreferences preferences = this.getSharedPreferences("userData",0);
+        Toast.makeText(this, preferences.getString("username","").toString(), Toast.LENGTH_LONG).show();
 
         initView();
     }

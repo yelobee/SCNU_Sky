@@ -1,9 +1,22 @@
 package com.example.administrator.huashixingkong.tools;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -22,7 +35,7 @@ public class LoginHttpURLConnection {
         student.put("name", name);
         student.put("password", password);
         try {
-            return SendGETRequest(path, student, "UTF-8");
+            return SendPostRequest(path, student, "UTF-8");
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -56,4 +69,22 @@ public class LoginHttpURLConnection {
         }
         return false;
     }
+
+    private static boolean SendPostRequest(String path, Map<String, String> student, String ecoding) throws IOException {
+        HttpClient httpClient = new DefaultHttpClient();
+        HttpPost httpPost = new HttpPost(path);
+        List<NameValuePair> params = new ArrayList<NameValuePair>();
+        for (Map.Entry<String,String> entry: student.entrySet()){
+            NameValuePair nameValuePair = new BasicNameValuePair(entry.getKey(),entry.getValue());
+            params.add(nameValuePair);
+        }
+        HttpEntity entity = new UrlEncodedFormEntity(params,ecoding);
+        httpPost.setEntity(entity);
+        HttpResponse response = httpClient.execute(httpPost);
+        if (response.getStatusLine().getStatusCode()==HttpURLConnection.HTTP_OK){
+            return true;
+        }
+        return false;
+    }
+
 }
