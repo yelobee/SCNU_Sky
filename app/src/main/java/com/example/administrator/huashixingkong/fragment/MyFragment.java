@@ -93,7 +93,7 @@ public class MyFragment extends Fragment {
         public View getView(int position, View convertView, ViewGroup parent) {
             ViewHolder holder;
             //观察convertView随ListView滚动情况
-            Log.v("MyListViewBase", "getView " + position + " " + convertView);
+            //Log.v("MyListViewBase", "getView " + position + " " + convertView);
             if (convertView == null) {
                 convertView = mInflater.inflate(R.layout.fragment_my_item_view,
                         null);
