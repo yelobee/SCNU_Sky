@@ -103,19 +103,23 @@ public class PersonalInformationActivity extends ActionBarActivity {
         @Override
         public void run() {
             UserJson userJson = new UserJson();
+            String str;
             try {
-                data = userJson.Analysis(MyHttp.save(name));
-                Log.d("abc",data.toString());
-                Message msg = handler.obtainMessage();
-                if(!data.isEmpty()){
-                    Log.d("abc","ok");
-                    msg.what = 0;
-                    msg.obj = data;
-                    handler.sendMessage(msg);
-                }else{
-                    Log.d("abc","error");
-                    msg.what = 1;
-                    handler.sendMessage(msg);
+                str = MyHttp.save(name);
+                if(str!=null) {
+                    data = userJson.Analysis(str);
+                    Log.d("abc", data.toString());
+                    Message msg = handler.obtainMessage();
+                    if (!data.isEmpty()) {
+                        Log.d("abc", "ok");
+                        msg.what = 0;
+                        msg.obj = data;
+                        handler.sendMessage(msg);
+                    } else {
+                        Log.d("abc", "error");
+                        msg.what = 1;
+                        handler.sendMessage(msg);
+                    }
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -229,9 +233,16 @@ public class PersonalInformationActivity extends ActionBarActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent();
-                intent.setClass(PersonalInformationActivity.this, ModifyActivity.class);
-                startActivity(intent);
+                if(position == 1){
+                    Intent intent = new Intent();
+                    intent.setClass(PersonalInformationActivity.this, SexChangeActivity.class);
+                    startActivity(intent);
+                }else{
+                    Intent intent = new Intent();
+                    intent.setClass(PersonalInformationActivity.this, ModifyActivity.class);
+                    startActivity(intent);
+                }
+
             }
         });
     }

@@ -45,7 +45,6 @@ public class RegisterHttp {
         HttpResponse response = httpClient.execute(request);
 
         if (response.getStatusLine().getStatusCode() == HttpURLConnection.HTTP_OK){
-            Log.d("abc", "ok");
             return true;
         }
 

@@ -61,6 +61,11 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
                 case 1:
                     Toast.makeText(getApplicationContext(), "密码错误", Toast.LENGTH_SHORT).show();
                     break;
+                case 2:
+                    Intent loginIntent2 = new Intent();
+                    loginIntent2.setClass(LoginActivity.this, MainActivity.class);
+                    startActivity(loginIntent2);
+                    break;
             }
         }
     };
@@ -121,15 +126,21 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
                 password = new String(password.getBytes("ISO8859-1"), "UTF-8");
 
                 result = LoginHttpURLConnection.save(name, password);
-                Log.d("abc",result);
+                //Log.d("abc",result);
                 Message msg = handler.obtainMessage();
-                if(result.equals("0")){
-                    Log.d("abc","ok");
-                    msg.what = 0;
-                    handler.sendMessage(msg);
+                if(result!=null){
+                    if(result.equals("0")){
+                        Log.d("abc","ok");
+                        msg.what = 0;
+                        handler.sendMessage(msg);
+                    }else{
+                        Log.d("abc","error");
+                        msg.what = 1;
+                        handler.sendMessage(msg);
+                    }
                 }else{
                     Log.d("abc","error");
-                    msg.what = 1;
+                    msg.what = 2;
                     handler.sendMessage(msg);
                 }
 
