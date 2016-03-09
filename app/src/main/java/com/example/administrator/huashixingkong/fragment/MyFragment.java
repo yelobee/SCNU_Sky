@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -18,6 +19,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.example.administrator.huashixingkong.R;
+import com.example.administrator.huashixingkong.activity.LoginActivity;
 import com.example.administrator.huashixingkong.activity.PersonalInformationActivity;
 
 import java.util.ArrayList;
@@ -42,6 +44,17 @@ public class MyFragment extends Fragment {
                 Intent intent = new Intent();
                 intent.setClass(getActivity(), PersonalInformationActivity.class);
                 startActivity(intent);
+            }
+        });
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (position == 2){
+                    Intent intent = new Intent();
+                    intent.setClass(getActivity(), LoginActivity.class);
+                    startActivity(intent);
+                }
             }
         });
 

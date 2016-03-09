@@ -2,8 +2,11 @@ package com.example.administrator.huashixingkong.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,7 +24,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.administrator.huashixingkong.R;
+import com.example.administrator.huashixingkong.tools.LoginHttpURLConnection;
+import com.example.administrator.huashixingkong.tools.MyHttp;
+import com.example.administrator.huashixingkong.tools.UserJson;
 
+import org.json.JSONException;
+
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -37,8 +46,13 @@ public class PersonalInformationActivity extends ActionBarActivity {
 
     private ListView listView;
     private String title[] = {"姓名","性别","地区","兴趣","个性签名"};
+    private String content[] = {"username","sex","address","hobby","signature"};
     private LinearLayout linearLayout;
     private ImageView headImage = null;
+
+    private String name;
+    private ArrayList<HashMap<String,Object>> data;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,12 +67,60 @@ public class PersonalInformationActivity extends ActionBarActivity {
             }
         });
 
+        SharedPreferences preferences = this.getSharedPreferences("userData",0);
+        name =  preferences.getString("username","");
+        data = new ArrayList<HashMap<String, Object>>();
+
+        Thread informationThread = new Thread(new InformationThread());
+        informationThread.start();
+
         listView = (ListView) findViewById(R.id.activity_personal_information_list);
         PersonalInformationAdapter personalInformationAdapter = new PersonalInformationAdapter(PersonalInformationActivity.this);
         listView.setAdapter(personalInformationAdapter);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         SetListItemOnClick();
+    }
+
+    Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what){
+                case 0:
+                    Toast.makeText(getApplicationContext(), "成功！", Toast.LENGTH_SHORT).show();
+                    //data = (ArrayList<HashMap<String, Object>>) msg.obj;
+                    break;
+                case 1:
+                    Toast.makeText(getApplicationContext(), "错误", Toast.LENGTH_SHORT).show();
+
+                    break;
+            }
+        }
+    };
+
+    class InformationThread implements Runnable{
+
+        @Override
+        public void run() {
+            UserJson userJson = new UserJson();
+            try {
+                data = userJson.Analysis(MyHttp.save(name));
+                Log.d("abc",data.toString());
+                Message msg = handler.obtainMessage();
+                if(!data.isEmpty()){
+                    Log.d("abc","ok");
+                    msg.what = 0;
+                    msg.obj = data;
+                    handler.sendMessage(msg);
+                }else{
+                    Log.d("abc","error");
+                    msg.what = 1;
+                    handler.sendMessage(msg);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     // 从本地相册选取图片作为头像
@@ -158,7 +220,6 @@ public class PersonalInformationActivity extends ActionBarActivity {
         for (int i=0;i<5;i++){
             HashMap<String, Object> map = new HashMap<String, Object>();
             map.put("ItemTitle", title[i]);
-            map.put("ItemMessage","wo");
             listItem.add(map);
         }
         return listItem;
@@ -213,7 +274,11 @@ public class PersonalInformationActivity extends ActionBarActivity {
             }
             /*设置TextView显示的内容，即我们存放在动态数组中的数据*/
             holder.title.setText(getDate().get(position).get("ItemTitle").toString());
-            holder.message.setText(getDate().get(position).get("ItemMessage").toString());
+
+            if (!data.isEmpty()){
+                holder.message.setText(data.get(0).get(content[position]).toString());
+            }
+
             return convertView;
         }
     }
