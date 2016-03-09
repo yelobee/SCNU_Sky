@@ -57,7 +57,7 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
         public void handleMessage(Message msg) {
             switch (msg.what){
                 case 0:
-                    Toast.makeText(getApplicationContext(), "登录成功！", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "登录成功!！", Toast.LENGTH_SHORT).show();
                     Intent loginIntent = new Intent();
                     loginIntent.setClass(LoginActivity.this, MainActivity.class);
                     startActivity(loginIntent);
