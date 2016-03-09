@@ -60,9 +60,6 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
                     break;
                 case 1:
                     Toast.makeText(getApplicationContext(), "密码错误", Toast.LENGTH_SHORT).show();
-                   /* Intent loginIntent2 = new Intent();
-                    loginIntent2.setClass(LoginActivity.this, MainActivity.class);
-                    startActivity(loginIntent2);*/
                     break;
             }
         }
