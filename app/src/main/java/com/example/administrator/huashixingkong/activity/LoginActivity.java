@@ -17,13 +17,9 @@ import android.widget.Toast;
 
 import com.example.administrator.huashixingkong.R;
 import com.example.administrator.huashixingkong.tools.LoginHttpURLConnection;
-import com.example.administrator.huashixingkong.tools.UserJson;
 
-import org.json.JSONException;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 
 public class LoginActivity extends ActionBarActivity implements View.OnClickListener{
