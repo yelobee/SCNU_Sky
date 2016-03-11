@@ -20,4 +20,6 @@
     <string name="title_activity_discuss_page">DiscussPageActivity</string>
     <string name="title_activity_modify">ModifyActivity</string>
     <string name="title_activity_sex_change">SexChangeActivity</string>
+    <string name="title_activity_setting">SettingActivity</string>
+    <string name="title_activity_update_password">UpdatePasswordActivity</string>
 </resources>

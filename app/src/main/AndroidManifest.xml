@@ -42,6 +42,14 @@
             android:name=".activity.SexChangeActivity"
             android:label="@string/title_activity_sex_change" >
         </activity>
+        <activity
+            android:name=".activity.SettingActivity"
+            android:label="@string/title_activity_setting" >
+        </activity>
+        <activity
+            android:name=".activity.UpdatePasswordActivity"
+            android:label="@string/title_activity_update_password" >
+        </activity>
     </application>
 
 </manifest>

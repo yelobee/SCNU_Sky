@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.example.administrator.huashixingkong.activity.SettingActivity">
+
+    <LinearLayout
+        android:id="@+id/activity_setting_change_password"
+        android:orientation="horizontal" android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="5dp">
+        <ImageView
+            android:id="@+id/activity_setting_list_image"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:src="@drawable/abc"/>
+        <TextView
+            android:id="@+id/activity_setting_list_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="5"
+            android:text="修改密码"/>
+    </LinearLayout>
+
+</LinearLayout>

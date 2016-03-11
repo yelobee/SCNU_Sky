@@ -21,6 +21,7 @@ import android.widget.TextView;
 import com.example.administrator.huashixingkong.R;
 import com.example.administrator.huashixingkong.activity.LoginActivity;
 import com.example.administrator.huashixingkong.activity.PersonalInformationActivity;
+import com.example.administrator.huashixingkong.activity.SettingActivity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,6 +51,11 @@ public class MyFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (position == 0){
+                    Intent intent = new Intent();
+                    intent.setClass(getActivity(), SettingActivity.class);
+                    startActivity(intent);
+                }
                 if (position == 2){
                     Intent intent = new Intent();
                     intent.setClass(getActivity(), LoginActivity.class);
@@ -61,9 +67,9 @@ public class MyFragment extends Fragment {
         return view;
     }
     private ArrayList<HashMap<String,Object>> getDate(){
-        ArrayList<HashMap<String, Object>> listItem = new ArrayList<HashMap<String, Object>>();
+        ArrayList<HashMap<String, Object>> listItem = new ArrayList<>();
         for (int i=0;i<3;i++){
-            HashMap<String, Object> map = new HashMap<String, Object>();
+            HashMap<String, Object> map = new HashMap<>();
             map.put("ItemText", title[i]);
             listItem.add(map);
         }
