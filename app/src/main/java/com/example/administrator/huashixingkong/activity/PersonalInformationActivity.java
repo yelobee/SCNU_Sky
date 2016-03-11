@@ -45,8 +45,8 @@ public class PersonalInformationActivity extends ActionBarActivity {
     private static int output_Y = 480;
 
     private ListView listView;
-    private String title[] = {"姓名","性别","地区","兴趣","个性签名"};
-    private String content[] = {"username","sex","address","hobby","signature"};
+    private static String title[] = {"姓名","性别","地区","兴趣","个性签名"};
+    private static String content[] = {"username","sex","address","hobby","signature"};
     private LinearLayout linearLayout;
     private ImageView headImage = null;
 
@@ -233,16 +233,16 @@ public class PersonalInformationActivity extends ActionBarActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent();
+                intent.putExtra("name",name);
+                intent.putExtra("title",content[position]);
+                intent.putExtra("content",((TextView)view.findViewById(R.id.personal_information_message)).getText());
                 if(position == 1){
-                    Intent intent = new Intent();
                     intent.setClass(PersonalInformationActivity.this, SexChangeActivity.class);
-                    startActivity(intent);
                 }else{
-                    Intent intent = new Intent();
                     intent.setClass(PersonalInformationActivity.this, ModifyActivity.class);
-                    startActivity(intent);
                 }
-
+                startActivity(intent);
             }
         });
     }

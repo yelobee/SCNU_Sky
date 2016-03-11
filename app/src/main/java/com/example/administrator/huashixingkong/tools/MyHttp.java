@@ -36,6 +36,21 @@ public class MyHttp {
         return null;
     }
 
+    public static String ModifySave(String name,String title, String content){
+        String path = "http://192.168.191.1:8080/scnu_sky/UserServlet";
+        Map<String, String> student = new HashMap<String, String>();
+        student.put("name", name);
+        student.put("title", title);
+        student.put("content", content);
+        try {
+            return SendPostRequest(path, student, "UTF-8");
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     private static String SendPostRequest(String path, Map<String, String> student, String ecoding) throws IOException {
         HttpClient httpClient = new DefaultHttpClient();
         HttpPost httpPost = new HttpPost(path);

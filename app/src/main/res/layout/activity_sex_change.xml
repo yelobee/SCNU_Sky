@@ -17,6 +17,5 @@
         android:id="@+id/asc_confirm"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="23sp"
         android:text="@string/confirm"/>
 </LinearLayout>
