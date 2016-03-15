@@ -11,6 +11,8 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.util.EntityUtils;
 
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
@@ -24,7 +26,7 @@ import java.util.Map;
 public class RegisterHttp {
     private static final String httpUrl = "http://192.168.191.1:8080/scnu_sky/RegisterServlet";
 
-    public static boolean save(String username, String password, String sex) throws Exception {
+    public static String save(String username, String password, String sex) throws Exception {
         Map<String,String> datas = new HashMap<String,String>();
         datas.put("username",username);
         datas.put("password",password);
@@ -32,7 +34,7 @@ public class RegisterHttp {
         return SendPostRequest(datas);
     }
 
-    public static boolean SendPostRequest(Map<String,String> datas)throws Exception{
+    public static String SendPostRequest(Map<String,String> datas)throws Exception{
         HttpClient httpClient = new DefaultHttpClient();
         HttpPost request = new HttpPost(httpUrl);
         List<NameValuePair> params = new ArrayList<NameValuePair>();
@@ -42,12 +44,14 @@ public class RegisterHttp {
         }
         HttpEntity entity = new UrlEncodedFormEntity(params,"UTF-8");
         request.setEntity(entity);
+        httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,3000);
+        httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 3000);
         HttpResponse response = httpClient.execute(request);
 
         if (response.getStatusLine().getStatusCode() == HttpURLConnection.HTTP_OK){
-            return true;
+            return EntityUtils.toString(response.getEntity(), "UTF-8");
         }
 
-        return false;
+        return null;
     }
 }

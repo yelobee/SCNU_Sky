@@ -59,9 +59,10 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
                     startActivity(loginIntent);
                     break;
                 case 1:
-                    Toast.makeText(getApplicationContext(), "密码错误", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "用户名或密码错误", Toast.LENGTH_SHORT).show();
                     break;
                 case 2:
+                    Toast.makeText(getApplicationContext(), "连接错误", Toast.LENGTH_SHORT).show();
                     Intent loginIntent2 = new Intent();
                     loginIntent2.setClass(LoginActivity.this, MainActivity.class);
                     startActivity(loginIntent2);

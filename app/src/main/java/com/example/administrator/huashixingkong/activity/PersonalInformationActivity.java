@@ -24,13 +24,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.administrator.huashixingkong.R;
-import com.example.administrator.huashixingkong.tools.LoginHttpURLConnection;
 import com.example.administrator.huashixingkong.tools.MyHttp;
-import com.example.administrator.huashixingkong.tools.UserJson;
+import com.example.administrator.huashixingkong.tools.JsonAnalysis;
 
 import org.json.JSONException;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -69,7 +67,7 @@ public class PersonalInformationActivity extends ActionBarActivity {
 
         SharedPreferences preferences = this.getSharedPreferences("userData",0);
         name =  preferences.getString("username","");
-        data = new ArrayList<HashMap<String, Object>>();
+        data = new ArrayList<>();
 
         Thread informationThread = new Thread(new InformationThread());
         informationThread.start();
@@ -102,12 +100,12 @@ public class PersonalInformationActivity extends ActionBarActivity {
 
         @Override
         public void run() {
-            UserJson userJson = new UserJson();
+            JsonAnalysis userJson = new JsonAnalysis();
             String str;
             try {
                 str = MyHttp.save(name);
                 if(str!=null) {
-                    data = userJson.Analysis(str);
+                    data = userJson.UserAnalysis(str);
                     Log.d("abc", data.toString());
                     Message msg = handler.obtainMessage();
                     if (!data.isEmpty()) {

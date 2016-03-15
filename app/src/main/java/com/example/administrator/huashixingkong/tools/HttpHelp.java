@@ -36,6 +36,33 @@ public class HttpHelp {
         return null;
     }
 
+    public static String SaveActivity(String start){
+        String path = "http://192.168.191.1:8080/scnu_sky/ActivityServlet";
+        Map<String, String> student = new HashMap<String, String>();
+        student.put("start", start);
+        try {
+            return SendPostRequest(path, student, "UTF-8");
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static String SaveComment(String start,String username){
+        String path = "http://192.168.191.1:8080/scnu_sky/CommentServlet";
+        Map<String, String> student = new HashMap<String, String>();
+        student.put("start", start);
+        student.put("name", username);
+        try {
+            return SendPostRequest(path, student, "UTF-8");
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     private static String SendPostRequest(String path, Map<String, String> student, String ecoding) throws IOException {
         HttpClient httpClient = new DefaultHttpClient();
         HttpPost httpPost = new HttpPost(path);

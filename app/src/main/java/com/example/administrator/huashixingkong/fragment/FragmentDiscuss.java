@@ -14,7 +14,6 @@ import com.example.administrator.huashixingkong.R;
 import com.example.administrator.huashixingkong.adapter.ViewPagerAdapter;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class FragmentDiscuss extends Fragment {
     private ViewPager viewPager;
@@ -29,9 +28,9 @@ public class FragmentDiscuss extends Fragment {
 
         textView1 = (TextView) view.findViewById(R.id.fragment_discuss_title1);
         textView2 = (TextView) view.findViewById(R.id.fragment_discuss_title2);
-        DiscussViewFragment fragmentPage1 = DiscussViewFragment.newInstance("a");
+        DiscussViewFragment fragmentPage1 = DiscussViewFragment.newInstance(null);
         lists.add(fragmentPage1);
-        DiscussViewFragment fragmentPage2 = DiscussViewFragment.newInstance("b");
+        CommentFragment fragmentPage2 = CommentFragment.newInstance(null,null);
         lists.add(fragmentPage2);
 
         viewPagerAdapter = new ViewPagerAdapter(getChildFragmentManager(),lists);

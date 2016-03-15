@@ -1,5 +1,7 @@
 package com.example.administrator.huashixingkong.activity;
 
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -52,33 +54,66 @@ public class RegisterActivity extends ActionBarActivity implements View.OnFocusC
                 if(!checkEdit()){
                     return;
                 }
-                new Thread(){
-                    @Override
-                    public void run() {
-                        boolean result = false;
-                        String name;
-                        String pass;
-                        String sexText;
-                        try {
-                            name = userName.getText().toString().trim();
-                            pass = passWord.getText().toString().trim();
-                            sexText = (String) sex.getSelectedItem();
-                            result = RegisterHttp.save(name , pass , sexText);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        if(result){
-                            //Toast.makeText(LoginActivity.this, "ok", Toast.LENGTH_SHORT).show();
-                            Log.d("abc", "ok");
-                        }else{
-                            //Toast.makeText(LoginActivity.this, "error", Toast.LENGTH_SHORT).show();
-                            Log.d("abc","error");
-                        }
-                    }
-                }.start();
+                Thread registerThread = new Thread(new RegisterThread());
+                registerThread.start();
             }
         });
 
+    }
+
+    Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what){
+                case 0:
+                    String result = msg.obj.toString();
+                    Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT).show();
+                    //data = (ArrayList<HashMap<String, Object>>) msg.obj;
+                    if (result.equals("success")){
+                        finish();
+                    }else{
+                        userName.setText("");
+                        userName.setHintTextColor(getResources().getColor(android.R.color.holo_red_light));
+                        userName.setHint(result);
+                    }
+                    break;
+                case 1:
+                    Toast.makeText(getApplicationContext(), "error", Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+    };
+
+    class RegisterThread implements Runnable{
+
+        @Override
+        public void run() {
+            String result = null;
+            String name;
+            String pass;
+            String sexText;
+            try {
+                name = userName.getText().toString().trim();
+                pass = passWord.getText().toString().trim();
+                sexText = (String) sex.getSelectedItem();
+                result = RegisterHttp.save(name , pass , sexText);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            Message msg = handler.obtainMessage();
+            if(result!=null){
+                //Toast.makeText(LoginActivity.this, "ok", Toast.LENGTH_SHORT).show();
+                Log.d("abc", "ok");
+                msg.what = 0;
+                msg.obj = result;
+                handler.sendMessage(msg);
+            }else{
+                //Toast.makeText(LoginActivity.this, "error", Toast.LENGTH_SHORT).show();
+                msg.what = 1;
+                handler.sendMessage(msg);
+                Log.d("abc","error");
+            }
+        }
     }
 
     @Override
