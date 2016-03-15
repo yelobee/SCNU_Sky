@@ -4,6 +4,8 @@ package com.example.administrator.huashixingkong.fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -21,6 +23,11 @@ import android.widget.Toast;
 import com.example.administrator.huashixingkong.R;
 import com.example.administrator.huashixingkong.activity.DiscussPageActivity;
 import com.example.administrator.huashixingkong.myview.RefreshLayout;
+import com.example.administrator.huashixingkong.tools.HttpHelp;
+import com.example.administrator.huashixingkong.tools.JsonAnalysis;
+import com.example.administrator.huashixingkong.tools.MyHttp;
+
+import org.json.JSONException;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -29,7 +36,11 @@ import java.util.HashMap;
 public class DiscussViewFragment extends Fragment {
 
     private ListView listView;
-    RefreshLayout myRefreshListView;
+    private DiscussViewAdapter myAdapter;
+    private RefreshLayout myRefreshListView;
+    private ArrayList<HashMap<String,Object>> data = new ArrayList<>();
+    private ArrayList<HashMap<String,Object>> list = new ArrayList<>();
+    private int start = 0;
 
     static DiscussViewFragment newInstance(String s){
         DiscussViewFragment discussViewFragment = new DiscussViewFragment();
@@ -44,7 +55,7 @@ public class DiscussViewFragment extends Fragment {
         listView = (ListView) view.findViewById(R.id.fragment_discuss_list);
         myRefreshListView = (RefreshLayout) view.findViewById(R.id.swipe_layout);
 
-        DiscussViewAdapter myAdapter = new DiscussViewAdapter(getActivity());
+        myAdapter = new DiscussViewAdapter(getActivity());
 
         listView.setAdapter(myAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -69,10 +80,13 @@ public class DiscussViewFragment extends Fragment {
                     @Override
                     public void run() {
                         myRefreshListView.setRefreshing(false);
+                        Thread discussThread = new Thread(new DiscussThread());
+                        discussThread.start();
                     }
                 }, 1000);
             }
         });
+
 
         myRefreshListView.setOnLoadListener(new RefreshLayout.OnLoadListener() {
             @Override
@@ -93,6 +107,60 @@ public class DiscussViewFragment extends Fragment {
         return view;
     }
 
+    Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what){
+                case 0:
+                    Toast.makeText(getActivity().getApplicationContext(), data.toString(), Toast.LENGTH_SHORT).show();
+                    //data = (ArrayList<HashMap<String, Object>>) msg.obj;
+                    if (list.isEmpty()){
+                        list = data;
+                    }else{
+                        for (int i=0;i<data.size();i++){
+                            list.add(data.get(i));
+                        }
+                    }
+                    start = start + data.size();
+                    myAdapter.notifyDataSetChanged();
+                    break;
+                case 1:
+                    Toast.makeText(getActivity().getApplicationContext(), "错误", Toast.LENGTH_SHORT).show();
+
+                    break;
+            }
+        }
+    };
+
+    class DiscussThread implements Runnable{
+
+        @Override
+        public void run() {
+            JsonAnalysis ActivityJson = new JsonAnalysis();
+            String str;
+            try {
+                str = HttpHelp.SaveActivity(String.valueOf(start));
+                if(str!=null) {
+                    data = ActivityJson.ActivityAnalysis(str);
+                    Log.d("abc", data.toString());
+                    Message msg = handler.obtainMessage();
+                    if (!data.isEmpty()) {
+                        Log.d("abc", "ok");
+                        msg.what = 0;
+                        msg.obj = data;
+                        handler.sendMessage(msg);
+                    } else {
+                        Log.d("abc", "error");
+                        msg.what = 1;
+                        handler.sendMessage(msg);
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private ArrayList<HashMap<String,Object>> getDate(){
         ArrayList<HashMap<String, Object>> listItem = new ArrayList<HashMap<String, Object>>();
         for (int i=0;i<4;i++){
@@ -109,7 +177,7 @@ public class DiscussViewFragment extends Fragment {
         }
         @Override
         public int getCount() {
-            return getDate().size();
+            return list.size();
         }
 
         @Override
@@ -142,7 +210,8 @@ public class DiscussViewFragment extends Fragment {
             }
             /*设置TextView显示的内容，即我们存放在动态数组中的数据*/
             holder.image.setImageResource(R.drawable.abc);
-            holder.title.setText(getDate().get(position).get("ItemText").toString());
+            //holder.title.setText(getDate().get(position).get("ItemText").toString());
+            holder.title.setText(list.get(position).get("title").toString());
             return convertView;
         }
     }
