@@ -84,25 +84,14 @@ public class CommentFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_comment, container, false);
         Log.d("abc", getActivity().toString());
 
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("userData",0);
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("userData", 0);
         name = sharedPreferences.getString("username",null);
 
         listView = (ListView) view.findViewById(R.id.fragment_comment_list);
         myRefreshListView = (RefreshLayout) view.findViewById(R.id.swipe_layout);
 
         DiscussViewAdapter myAdapter = new DiscussViewAdapter(getActivity());
-
-        listView.setAdapter(myAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                Intent intent = new Intent();
-                intent.setClass(getActivity(), DiscussPageActivity.class);
-                startActivity(intent);
-            }
-        });
-
+        
         myRefreshListView.setColorSchemeColors(android.R.color.black, android.R.color.white,
                 android.R.color.holo_blue_bright, android.R.color.holo_red_dark);
 
@@ -138,6 +127,17 @@ public class CommentFragment extends Fragment {
 
             }
 
+        });
+
+        listView.setAdapter(myAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                Intent intent = new Intent();
+                intent.setClass(getActivity(), DiscussPageActivity.class);
+                startActivity(intent);
+            }
         });
         return view;
     }
