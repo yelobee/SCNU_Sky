@@ -25,7 +25,6 @@ public class JsonAnalysis {
             JSONObject jsonObject = jsonArray.getJSONObject(i);
             // 初始化map数组对象
             HashMap<String, Object> map = new HashMap<String, Object>();
-            map.put("user_id", jsonObject.getInt("user_id"));
             map.put("username", jsonObject.getString("username"));
             map.put("sex", jsonObject.getString("sex"));
             map.put("head_image", jsonObject.getString("head_image"));

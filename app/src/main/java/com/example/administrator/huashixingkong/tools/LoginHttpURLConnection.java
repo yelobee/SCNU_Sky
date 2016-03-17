@@ -32,7 +32,7 @@ public class LoginHttpURLConnection {
      * @return
      */
     public static String save(String name, String password){
-        String path = "http://192.168.191.1:8080/scnu_sky/LoginServlet";
+        String path = "http://110.65.86.250:8080/scnu_sky/LoginServlet";
         Map<String, String> student = new HashMap<String, String>();
         student.put("name", name);
         student.put("password", password);

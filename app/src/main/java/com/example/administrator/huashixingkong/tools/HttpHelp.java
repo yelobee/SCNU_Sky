@@ -24,7 +24,7 @@ import java.util.Map;
 public class HttpHelp {
 
     public static String save(String name){
-        String path = "http://192.168.191.1:8080/scnu_sky/LoginServlet";
+        String path = "http://110.65.86.250:8080/scnu_sky/LoginServlet";
         Map<String, String> student = new HashMap<String, String>();
         student.put("name", name);
         try {
@@ -37,7 +37,7 @@ public class HttpHelp {
     }
 
     public static String SaveActivity(String start){
-        String path = "http://192.168.191.1:8080/scnu_sky/ActivityServlet";
+        String path = "http://110.65.86.250:8080/scnu_sky/ActivityServlet";
         Map<String, String> student = new HashMap<String, String>();
         student.put("start", start);
         try {
@@ -50,7 +50,7 @@ public class HttpHelp {
     }
 
     public static String SaveComment(String start,String username){
-        String path = "http://192.168.191.1:8080/scnu_sky/CommentServlet";
+        String path = "http://110.65.86.250:8080/scnu_sky/CommentServlet";
         Map<String, String> student = new HashMap<String, String>();
         student.put("start", start);
         student.put("name", username);

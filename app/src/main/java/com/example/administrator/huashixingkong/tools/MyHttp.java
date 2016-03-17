@@ -24,7 +24,7 @@ import java.util.Map;
 public class MyHttp {
 
     public static String save(String name){
-        String path = "http://192.168.191.1:8080/scnu_sky/UserServlet";
+        String path = "http://110.65.86.250:8080/scnu_sky/UserServlet";
         Map<String, String> student = new HashMap<String, String>();
         student.put("name", name);
         try {
@@ -37,7 +37,7 @@ public class MyHttp {
     }
 
     public static String ModifySave(String name,String title, String content){
-        String path = "http://192.168.191.1:8080/scnu_sky/UserServlet";
+        String path = "http://110.65.86.250:8080/scnu_sky/UserServlet";
         Map<String, String> student = new HashMap<String, String>();
         student.put("name", name);
         student.put("title", title);

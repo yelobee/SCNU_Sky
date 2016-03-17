@@ -3,6 +3,7 @@ package com.example.administrator.huashixingkong.fragment;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -26,6 +27,8 @@ import com.example.administrator.huashixingkong.myview.RefreshLayout;
 import com.example.administrator.huashixingkong.tools.HttpHelp;
 import com.example.administrator.huashixingkong.tools.JsonAnalysis;
 import com.example.administrator.huashixingkong.tools.MyHttp;
+import com.handmark.pulltorefresh.library.PullToRefreshBase;
+import com.handmark.pulltorefresh.library.PullToRefreshListView;
 
 import org.json.JSONException;
 
@@ -36,11 +39,12 @@ import java.util.HashMap;
 public class DiscussViewFragment extends Fragment {
 
     private ListView listView;
-    private DiscussViewAdapter myAdapter;
     private RefreshLayout myRefreshListView;
     private ArrayList<HashMap<String,Object>> data = new ArrayList<>();
     private ArrayList<HashMap<String,Object>> list = new ArrayList<>();
     private int start = 0;
+    private PullToRefreshListView pullToRefreshListView;
+    private DiscussViewAdapter myAdapter;
 
     static DiscussViewFragment newInstance(String s){
         DiscussViewFragment discussViewFragment = new DiscussViewFragment();
@@ -51,25 +55,11 @@ public class DiscussViewFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_discuss_view,container,false);
-        Log.d("abc", getActivity().toString());
+       /* Log.d("abc", getActivity().toString());
         listView = (ListView) view.findViewById(R.id.fragment_discuss_list);
         myRefreshListView = (RefreshLayout) view.findViewById(R.id.swipe_layout);
 
         myAdapter = new DiscussViewAdapter(getActivity());
-
-        listView.setAdapter(myAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                Intent intent = new Intent();
-                intent.setClass(getActivity(), DiscussPageActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        myRefreshListView.setColorSchemeColors(android.R.color.black, android.R.color.white,
-                android.R.color.holo_blue_bright, android.R.color.holo_red_dark);
 
         myRefreshListView.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -104,10 +94,89 @@ public class DiscussViewFragment extends Fragment {
             }
 
         });
+
+        listView.setAdapter(myAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                Intent intent = new Intent();
+                intent.setClass(getActivity(), DiscussPageActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        myRefreshListView.setColorSchemeColors(android.R.color.black, android.R.color.white,
+                android.R.color.holo_blue_bright, android.R.color.holo_red_dark);*/
+
+        initView(view);
+        setEventListener();
         return view;
     }
 
-    Handler handler = new Handler(){
+    private void initView(View view){
+        pullToRefreshListView = (PullToRefreshListView) view.findViewById(R.id.fragment_discuss_list);
+        myAdapter = new DiscussViewAdapter(getActivity());
+        pullToRefreshListView.setAdapter(myAdapter);
+
+        //设置pull-to-refresh模式为Mode.Both
+        pullToRefreshListView.setMode(PullToRefreshBase.Mode.BOTH);
+
+    }
+
+    private void setEventListener(){
+        pullToRefreshListView.setOnRefreshListener(new PullToRefreshBase.OnRefreshListener2<ListView>() {
+            @Override
+            public void onPullDownToRefresh(PullToRefreshBase<ListView> refreshView) {
+                // 下拉刷新触发的事件
+                pullToRefreshListView.onRefreshComplete();
+                //new GetDataTask().execute();
+            }
+
+            @Override
+            public void onPullUpToRefresh(PullToRefreshBase<ListView> refreshView) {
+                // 上提加载触发的事件
+                new GetDataTask().execute();
+            }
+        });
+    }
+
+    private class GetDataTask extends AsyncTask<Void, Void, ArrayList<HashMap<String,Object>>> {
+
+        @Override
+        protected ArrayList<HashMap<String,Object>> doInBackground(Void... params) {
+            JsonAnalysis ActivityJson = new JsonAnalysis();
+            String str;
+            try {
+                str = HttpHelp.SaveActivity(String.valueOf(start));
+                if(str!=null) {
+                    data = ActivityJson.ActivityAnalysis(str);
+                    Log.d("abc", data.toString());
+                    if (!data.isEmpty()) {
+                        Log.d("abc", "ok");
+                        return data;
+                    } else {
+                        Log.d("abc", "error");
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<HashMap<String,Object>> result) {
+            // 调用刷新完成
+
+            myAdapter.notifyDataSetChanged();
+            pullToRefreshListView.onRefreshComplete();
+
+            super.onPostExecute(result);
+        }
+    }
+
+    /*Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what){
@@ -169,7 +238,7 @@ public class DiscussViewFragment extends Fragment {
             listItem.add(map);
         }
         return listItem;
-    }
+    }*/
     private class DiscussViewAdapter extends BaseAdapter {
         private LayoutInflater mInflater;//得到一个LayoutInfalter对象用来导入布局 /*构造函数*/
         public DiscussViewAdapter(Context context) {
@@ -177,7 +246,7 @@ public class DiscussViewFragment extends Fragment {
         }
         @Override
         public int getCount() {
-            return list.size();
+            return data.size();
         }
 
         @Override
@@ -211,7 +280,7 @@ public class DiscussViewFragment extends Fragment {
             /*设置TextView显示的内容，即我们存放在动态数组中的数据*/
             holder.image.setImageResource(R.drawable.abc);
             //holder.title.setText(getDate().get(position).get("ItemText").toString());
-            holder.title.setText(list.get(position).get("title").toString());
+            holder.title.setText(data.get(position).get("title").toString());
             return convertView;
         }
     }

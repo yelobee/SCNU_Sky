@@ -24,7 +24,7 @@ import java.util.Map;
  * Created by Administrator on 2016/3/4.
  */
 public class RegisterHttp {
-    private static final String httpUrl = "http://192.168.191.1:8080/scnu_sky/RegisterServlet";
+    private static final String httpUrl = "http://110.65.86.250:8080/scnu_sky/RegisterServlet";
 
     public static String save(String username, String password, String sex) throws Exception {
         Map<String,String> datas = new HashMap<String,String>();
