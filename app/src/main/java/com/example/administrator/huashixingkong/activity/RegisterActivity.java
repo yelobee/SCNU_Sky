@@ -27,6 +27,7 @@ public class RegisterActivity extends ActionBarActivity implements View.OnFocusC
     private Spinner sex;
     private Button registerConfirm;
     private ArrayAdapter<String> spinnerAdapter;
+    private boolean flag = false; //判断数据是否符合要求标志
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +51,7 @@ public class RegisterActivity extends ActionBarActivity implements View.OnFocusC
         registerConfirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!checkEdit()){
+                if(!flag){
                     return;
                 }
                 Thread registerThread = new Thread(new RegisterThread());
@@ -164,6 +165,9 @@ public class RegisterActivity extends ActionBarActivity implements View.OnFocusC
                         hint = "用户名不能为空";
                         userName.setHintTextColor(getResources().getColor(android.R.color.holo_red_light));
                         userName.setHint(hint);
+                        flag = false;
+                    }else{
+                        flag = true;
                     }
                     break;
                 case R.id.password:
@@ -172,6 +176,9 @@ public class RegisterActivity extends ActionBarActivity implements View.OnFocusC
                         hint = "密码不能小于6个字符";
                         passWord.setHintTextColor(getResources().getColor(android.R.color.holo_red_light));
                         passWord.setHint(hint);
+                        flag = false;
+                    }else{
+                        flag = true;
                     }
                     break;
                 case R.id.check_pass:
@@ -180,6 +187,9 @@ public class RegisterActivity extends ActionBarActivity implements View.OnFocusC
                         hint = "两次密码输入不一致";
                         checkPass.setHintTextColor(getResources().getColor(android.R.color.holo_red_light));
                         checkPass.setHint(hint);
+                        flag = false;
+                    }else{
+                        flag = true;
                     }
                     break;
             }

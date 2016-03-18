@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.administrator.huashixingkong.R;
+import com.example.administrator.huashixingkong.activity.ActActivity;
 import com.example.administrator.huashixingkong.activity.DiscussPageActivity;
 import com.example.administrator.huashixingkong.myview.RefreshLayout;
 import com.example.administrator.huashixingkong.tools.HttpHelp;
@@ -137,6 +138,14 @@ public class DiscussViewFragment extends Fragment {
             public void onPullUpToRefresh(PullToRefreshBase<ListView> refreshView) {
                 // 上提加载触发的事件
                 new GetDataTask().execute();
+            }
+        });
+        pullToRefreshListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent();
+                intent.setClass(getActivity(), ActActivity.class);
+                startActivity(intent);
             }
         });
     }
@@ -265,27 +274,24 @@ public class DiscussViewFragment extends Fragment {
             //观察convertView随ListView滚动情况
             Log.v("MyListViewBase", "getView " + position + " " + convertView);
             if (convertView == null) {
-                convertView = mInflater.inflate(R.layout.fragment_discuss_item_view,
+                convertView = mInflater.inflate(R.layout.fragment_activity_item_view,
                         null);
                 holder = new ViewHolder();
                     /*得到各个控件的对象*/
-                holder.image = (ImageView) convertView.findViewById(R.id.fragment_discuss_image);
-                holder.title = (TextView) convertView.findViewById(R.id.fragment_discuss_title);
-                holder.message = (TextView) convertView.findViewById(R.id.fragment_discuss_message);
-                holder.date = (TextView) convertView.findViewById(R.id.fragment_discuss_date);
+                holder.title = (TextView) convertView.findViewById(R.id.fragment_activity_title);
+                holder.message = (TextView) convertView.findViewById(R.id.fragment_activity_message);
+                holder.date = (TextView) convertView.findViewById(R.id.fragment_activity_date);
                 convertView.setTag(holder);//绑定ViewHolder对象
             }else{
                 holder = (ViewHolder)convertView.getTag();//取出ViewHolder对象
             }
             /*设置TextView显示的内容，即我们存放在动态数组中的数据*/
-            holder.image.setImageResource(R.drawable.abc);
             //holder.title.setText(getDate().get(position).get("ItemText").toString());
             holder.title.setText(data.get(position).get("title").toString());
             return convertView;
         }
     }
     public final class ViewHolder{
-        public ImageView image;
         public TextView title;
         public TextView message;
         public TextView date;

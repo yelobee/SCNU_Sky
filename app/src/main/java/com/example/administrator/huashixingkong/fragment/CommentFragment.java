@@ -173,6 +173,14 @@ public class CommentFragment extends Fragment {
                 new GetDataTask().execute();
             }
         });
+        pullToRefreshListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent();
+                intent.setClass(getActivity(), DiscussPageActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     private class GetDataTask extends AsyncTask<Void, Void, ArrayList<HashMap<String,Object>>> {

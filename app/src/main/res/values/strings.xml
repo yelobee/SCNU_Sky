@@ -23,4 +23,6 @@
     <string name="title_activity_sex_change">SexChangeActivity</string>
     <string name="title_activity_setting">SettingActivity</string>
     <string name="title_activity_update_password">UpdatePasswordActivity</string>
+    <string name="title_activity_">ActivityActivity</string>
+    <string name="title_activity_act">ActActivity</string>
 </resources>
