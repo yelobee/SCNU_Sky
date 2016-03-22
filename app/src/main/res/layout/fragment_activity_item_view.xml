@@ -7,23 +7,25 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
-        android:layout_marginLeft="5dp"
+        android:layout_marginLeft="10dp"
         android:textSize="20sp"
         android:textColor="#000000"
-        android:text="文字"/>
+        android:text="无"/>
     <TextView
         android:id="@+id/fragment_activity_message"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/fragment_activity_title"
-        android:layout_marginLeft="5dp"
+        android:layout_marginLeft="10dp"
         android:lines="2"
-        android:text="abdsagfahshgfjasfgajsdhfgdsjahfgdsjhf"/>
+        android:text="无"/>
     <TextView
         android:id="@+id/fragment_activity_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_marginTop="5dp"
-        android:text="2011-11-11发布"/>
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:text="无"/>
 </RelativeLayout>

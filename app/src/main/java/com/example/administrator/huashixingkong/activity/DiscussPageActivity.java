@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.administrator.huashixingkong.R;
@@ -23,7 +24,7 @@ import java.util.HashMap;
 
 public class DiscussPageActivity extends ActionBarActivity {
 
-    private SlideListView slideListView;
+    private ListView ListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,11 +33,11 @@ public class DiscussPageActivity extends ActionBarActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         DiscussView discussView = new DiscussView(DiscussPageActivity.this,null);
-        slideListView = (SlideListView) findViewById(R.id.slideListView);
-        slideListView.addHeaderView(discussView);
+        ListView = (ListView) findViewById(R.id.view_discuss_page_list);
+        ListView.addHeaderView(discussView);
         DiscussViewAdapter myAdapter = new DiscussViewAdapter(this);
-        slideListView.initSlideMode(SlideListView.MOD_RIGHT);
-        slideListView.setAdapter(myAdapter);
+        //ListView.initSlideMode(SlideListView.MOD_RIGHT);
+        ListView.setAdapter(myAdapter);
 
     }
 
@@ -102,7 +103,7 @@ public class DiscussPageActivity extends ActionBarActivity {
             //观察convertView随ListView滚动情况
             Log.v("MyListViewBase", "getView " + position + " " + convertView);
             if (convertView == null) {
-                convertView = mInflater.inflate(R.layout.activity_discuss_item_view,
+                convertView = mInflater.inflate(R.layout.activity_discuss_item_view2,
                         null);
                 holder = new ViewHolder();
                     /*得到各个控件的对象*/

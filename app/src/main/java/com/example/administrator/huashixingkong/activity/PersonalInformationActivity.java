@@ -1,5 +1,6 @@
 package com.example.administrator.huashixingkong.activity;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -50,13 +51,14 @@ public class PersonalInformationActivity extends ActionBarActivity {
 
     private String name;
     private ArrayList<HashMap<String,Object>> data;
-
+    private ProgressDialog progressDialog;
+    private PersonalInformationAdapter personalInformationAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_personal_information);
-
+        progressDialog = ProgressDialog.show(PersonalInformationActivity.this, "Loading...", "Please wait...", true, false);
         linearLayout = (LinearLayout) findViewById(R.id.head_image);
         linearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -73,7 +75,7 @@ public class PersonalInformationActivity extends ActionBarActivity {
         informationThread.start();
 
         listView = (ListView) findViewById(R.id.activity_personal_information_list);
-        PersonalInformationAdapter personalInformationAdapter = new PersonalInformationAdapter(PersonalInformationActivity.this);
+        personalInformationAdapter = new PersonalInformationAdapter(PersonalInformationActivity.this);
         listView.setAdapter(personalInformationAdapter);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -85,12 +87,19 @@ public class PersonalInformationActivity extends ActionBarActivity {
         public void handleMessage(Message msg) {
             switch (msg.what){
                 case 0:
+                    //关闭ProgressDialog
+                    progressDialog.dismiss();
                     Toast.makeText(getApplicationContext(), "成功！", Toast.LENGTH_SHORT).show();
+                    personalInformationAdapter.notifyDataSetChanged();
                     //data = (ArrayList<HashMap<String, Object>>) msg.obj;
+
                     break;
                 case 1:
+                    progressDialog.dismiss();
                     Toast.makeText(getApplicationContext(), "错误", Toast.LENGTH_SHORT).show();
-
+                    break;
+                case 2:
+                    progressDialog.dismiss();
                     break;
             }
         }
@@ -104,10 +113,10 @@ public class PersonalInformationActivity extends ActionBarActivity {
             String str;
             try {
                 str = MyHttp.save(name);
+                Message msg = handler.obtainMessage();
                 if(str!=null) {
                     data = userJson.UserAnalysis(str);
                     Log.d("abc", data.toString());
-                    Message msg = handler.obtainMessage();
                     if (!data.isEmpty()) {
                         Log.d("abc", "ok");
                         msg.what = 0;
@@ -118,6 +127,9 @@ public class PersonalInformationActivity extends ActionBarActivity {
                         msg.what = 1;
                         handler.sendMessage(msg);
                     }
+                }else{
+                    msg.what = 2;
+                    handler.sendMessage(msg);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();

@@ -46,6 +46,7 @@ public class DiscussViewFragment extends Fragment {
     private int start = 0;
     private PullToRefreshListView pullToRefreshListView;
     private DiscussViewAdapter myAdapter;
+    private View view;
 
     static DiscussViewFragment newInstance(String s){
         DiscussViewFragment discussViewFragment = new DiscussViewFragment();
@@ -55,7 +56,11 @@ public class DiscussViewFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_discuss_view,container,false);
+        if (view == null){
+            view = inflater.inflate(R.layout.fragment_discuss_view,container,false);
+            initView(view);
+            setEventListener();
+        }
        /* Log.d("abc", getActivity().toString());
         listView = (ListView) view.findViewById(R.id.fragment_discuss_list);
         myRefreshListView = (RefreshLayout) view.findViewById(R.id.swipe_layout);
@@ -110,13 +115,23 @@ public class DiscussViewFragment extends Fragment {
         myRefreshListView.setColorSchemeColors(android.R.color.black, android.R.color.white,
                 android.R.color.holo_blue_bright, android.R.color.holo_red_dark);*/
 
-        initView(view);
-        setEventListener();
+
+        ViewGroup parent = (ViewGroup) view.getParent();
+        if (parent != null) {
+            parent.removeView(view);
+        }
         return view;
     }
 
     private void initView(View view){
         pullToRefreshListView = (PullToRefreshListView) view.findViewById(R.id.fragment_discuss_list);
+        new Handler().postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                pullToRefreshListView.setRefreshing();
+            }
+        }, 3000);
         myAdapter = new DiscussViewAdapter(getActivity());
         pullToRefreshListView.setAdapter(myAdapter);
 
@@ -125,11 +140,14 @@ public class DiscussViewFragment extends Fragment {
 
     }
 
+
+
     private void setEventListener(){
         pullToRefreshListView.setOnRefreshListener(new PullToRefreshBase.OnRefreshListener2<ListView>() {
             @Override
             public void onPullDownToRefresh(PullToRefreshBase<ListView> refreshView) {
                 // 下拉刷新触发的事件
+                Log.d("abcd","autorefresh");
                 pullToRefreshListView.onRefreshComplete();
                 //new GetDataTask().execute();
             }
@@ -288,6 +306,8 @@ public class DiscussViewFragment extends Fragment {
             /*设置TextView显示的内容，即我们存放在动态数组中的数据*/
             //holder.title.setText(getDate().get(position).get("ItemText").toString());
             holder.title.setText(data.get(position).get("title").toString());
+            holder.message.setText(data.get(position).get("content").toString());
+            holder.date.setText(data.get(position).get("release_date").toString()+"发布");
             return convertView;
         }
     }

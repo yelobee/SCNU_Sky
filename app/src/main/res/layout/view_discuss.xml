@@ -8,8 +8,8 @@
         android:layout_height="wrap_content">
         <ImageView
             android:id="@+id/view_discuss_image"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_margin="10dp"
             android:layout_marginLeft="20dp"
             android:src="@drawable/abc"
@@ -18,10 +18,10 @@
         <TextView
             android:id="@+id/view_discuss_name"
             android:layout_width="match_parent"
-            android:layout_height="35dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
             android:singleLine="true"
-            android:textSize="20sp"
+            android:textSize="16sp"
             android:layout_toRightOf="@id/view_discuss_image"
             android:text="abcd"/>
         <TextView
@@ -39,7 +39,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:textSize="18sp"
+        android:textSize="16sp"
         android:textColor="#000000"
         android:text="abcdefg"/>
     <View
