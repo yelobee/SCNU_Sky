@@ -77,7 +77,7 @@ public class SexChangeActivity extends ActionBarActivity {
             str = MyHttp.ModifySave(name, title,sex.getSelectedItem().toString());
             if(str!=null) {
                 Message msg = handler.obtainMessage();
-                if (str.equals("0")) {
+                if (str.equals("success")) {
                     Log.d("abc", "ok");
                     msg.what = 0;
                     handler.sendMessage(msg);

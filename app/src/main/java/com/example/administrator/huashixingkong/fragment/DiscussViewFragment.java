@@ -162,6 +162,7 @@ public class DiscussViewFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent();
+                intent.putExtra("activity_id", (Integer) data.get(position).get("activity_id"));
                 intent.setClass(getActivity(), ActActivity.class);
                 startActivity(intent);
             }

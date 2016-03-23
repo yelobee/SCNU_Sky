@@ -54,6 +54,7 @@ public class ModifyActivity extends ActionBarActivity {
                 case 0:
                     Toast.makeText(getApplicationContext(), "成功！", Toast.LENGTH_SHORT).show();
                     //data = (ArrayList<HashMap<String, Object>>) msg.obj;
+                    finish();
                     break;
                 case 1:
                     Toast.makeText(getApplicationContext(), "错误", Toast.LENGTH_SHORT).show();
@@ -69,9 +70,10 @@ public class ModifyActivity extends ActionBarActivity {
         public void run() {
             String str;
             str = MyHttp.ModifySave(name,title,editText.getText().toString());
+            Log.d("abc", str);
             if(str!=null) {
                 Message msg = handler.obtainMessage();
-                if (str=="0") {
+                if (str.equals("success")) {
                     Log.d("abc", "ok");
                     msg.what = 0;
                     handler.sendMessage(msg);

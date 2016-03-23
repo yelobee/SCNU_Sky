@@ -53,7 +53,7 @@ public class FragmentDiscuss extends Fragment {
             CommentFragment fragmentPage2 = CommentFragment.newInstance(null,null);
             lists.add(fragmentPage2);
 
-            initeCursor();
+            initCursor();
 
             viewPagerAdapter = new ViewPagerAdapter(getChildFragmentManager(),lists);
             viewPager.setAdapter(viewPagerAdapter);
@@ -113,10 +113,11 @@ public class FragmentDiscuss extends Fragment {
         if (parent != null) {
             parent.removeView(view);
         }
+        viewPager.setCurrentItem(0);
         return view;
     }
 
-    private void initeCursor() {
+    private void initCursor() {
         cursor = BitmapFactory.decodeResource(getResources(), R.drawable.cursor);
         bmWidth = cursor.getWidth();// 获取图片宽度
 

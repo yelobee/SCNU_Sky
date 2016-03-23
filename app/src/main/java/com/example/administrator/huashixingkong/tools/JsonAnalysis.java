@@ -65,7 +65,7 @@ public class JsonAnalysis {
         /******************* 解析 ***********************/
         JSONArray jsonArray = null;
         // 初始化list数组对象
-        ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
+        ArrayList<HashMap<String, Object>> list = new ArrayList<>();
         jsonArray = new JSONArray(jsonStr);
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject jsonObject = jsonArray.getJSONObject(i);
@@ -73,10 +73,34 @@ public class JsonAnalysis {
             HashMap<String, Object> map = new HashMap<String, Object>();
             map.put("m_comment_id", jsonObject.getInt("m_comment_id"));
             map.put("username", jsonObject.getString("username"));
-            map.put("mood_id", jsonObject.getString("mood_id"));
+            map.put("mood_id", jsonObject.getInt("mood_id"));
             map.put("content", jsonObject.getString("content"));
-            map.put("is_reply", jsonObject.getBoolean("is_reply"));
+            map.put("release_date", jsonObject.getString("release_date"));
+            map.put("is_reply", jsonObject.getInt("is_reply"));
             map.put("reply_user", jsonObject.getString("reply_user"));
+            map.put("like_count", jsonObject.getInt("like_count"));
+            list.add(map);
+        }
+        //Log.d("abc",list.toString());
+        return list;
+    }
+
+    public static ArrayList<HashMap<String,Object>> MoodAnalysis(String jsonStr)
+            throws JSONException {
+        /******************* 解析 ***********************/
+        JSONArray jsonArray = null;
+        // 初始化list数组对象
+        ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
+        jsonArray = new JSONArray(jsonStr);
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            // 初始化map数组对象
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("mood_id", jsonObject.getInt("mood_id"));
+            map.put("username", jsonObject.getString("username"));
+            map.put("content", jsonObject.getString("content"));
+            map.put("release_date", jsonObject.getString("release_date"));
+            map.put("like_count", jsonObject.getInt("like_count"));
             list.add(map);
         }
         //Log.d("abc",list.toString());

@@ -53,7 +53,9 @@
         </activity>
         <activity
             android:name=".activity.ActActivity"
-            android:label="@string/title_activity_act" >
+            android:label="@string/title_activity_act"
+            android:windowSoftInputMode="adjustUnspecified|stateHidden"
+            android:configChanges="orientation|keyboardHidden">
         </activity>
     </application>
 

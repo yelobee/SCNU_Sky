@@ -82,6 +82,15 @@ public class PersonalInformationActivity extends ActionBarActivity {
         SetListItemOnClick();
     }
 
+    @Override
+    protected void onRestart() {
+        Log.d("abc","信息重新进入");
+        progressDialog.show();
+        Thread informationThread = new Thread(new InformationThread());
+        informationThread.start();
+        super.onRestart();
+    }
+
     Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {

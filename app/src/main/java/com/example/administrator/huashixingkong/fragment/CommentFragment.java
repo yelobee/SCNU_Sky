@@ -45,11 +45,13 @@ public class CommentFragment extends Fragment {
 
     private ListView listView;
     private RefreshLayout myRefreshListView;
-    private ArrayList<HashMap<String,Object>> data;
+    private ArrayList<HashMap<String,Object>> data = new ArrayList<>();
     private int start = 0;
     private String name = null;
     private PullToRefreshListView pullToRefreshListView;
     private DiscussViewAdapter myAdapter;
+    private View view;
+    private SharedPreferences sharedPreferences;
 
     /**
      * Use this factory method to create a new instance of
@@ -85,11 +87,18 @@ public class CommentFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_comment, container, false);
-        Log.d("abc", getActivity().toString());
 
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("userData", 0);
-        name = sharedPreferences.getString("username",null);
+        if (view == null){
+            view = inflater.inflate(R.layout.fragment_comment, container, false);
+            sharedPreferences = getActivity().getSharedPreferences("userData", 0);
+            name = sharedPreferences.getString("username", null);
+            initView(view);
+            setEventListener();
+        }
+        ViewGroup parent = (ViewGroup) view.getParent();
+        if (parent != null) {
+            parent.removeView(view);
+        }
 
         /*listView = (ListView) view.findViewById(R.id.fragment_comment_list);
         myRefreshListView = (RefreshLayout) view.findViewById(R.id.swipe_layout);
@@ -143,8 +152,6 @@ public class CommentFragment extends Fragment {
                 startActivity(intent);
             }
         });*/
-        initView(view);
-        setEventListener();
         return view;
     }
 
@@ -177,6 +184,7 @@ public class CommentFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent();
+                intent.putExtra("mood_id", (Integer) data.get(position-1).get("mood_id"));
                 intent.setClass(getActivity(), DiscussPageActivity.class);
                 startActivity(intent);
             }
@@ -192,7 +200,7 @@ public class CommentFragment extends Fragment {
             try {
                 str = HttpHelp.SaveComment(String.valueOf(start), name);
                 if(str!=null) {
-                    data = CommentJson.CommentAnalysis(str);
+                    data = CommentJson.MoodAnalysis(str);
                     Log.d("abc", data.toString());
                     if (!data.isEmpty()) {
                         Log.d("abc", "ok");
@@ -280,7 +288,7 @@ public class CommentFragment extends Fragment {
         }
         @Override
         public int getCount() {
-            return getDate().size();
+            return data.size();
         }
 
         @Override
@@ -313,7 +321,9 @@ public class CommentFragment extends Fragment {
             }
             /*设置TextView显示的内容，即我们存放在动态数组中的数据*/
             holder.image.setImageResource(R.drawable.abc);
-            holder.title.setText(getDate().get(position).get("ItemText").toString());
+            holder.title.setText(data.get(position).get("username").toString());
+            holder.message.setText(data.get(position).get("content").toString());
+            holder.date.setText(data.get(position).get("release_date").toString() + "发布");
             return convertView;
         }
     }
