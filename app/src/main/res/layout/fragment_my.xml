@@ -3,32 +3,44 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="com.example.administrator.huashixingkong.fragment.MyFragment">
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/fragment_my_personal_information"
+        android:gravity="center_vertical"
         android:layout_width="match_parent"
-        android:layout_height="100dp">
+        android:background="@android:color/white"
+        android:layout_height="80dp"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
         <ImageView
             android:id="@+id/fragment_my_image"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_margin="20dp"
-            android:src="@drawable/abc"/>
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_margin="10dp"
+            android:layout_marginLeft="20dp"
+            android:src="@drawable/abc"
+            android:adjustViewBounds="true"
+            android:background="@drawable/image_view_background"/>
         <TextView
             android:id="@+id/fragment_my_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@+id/fragment_my_image"/>
-        <TextView
+            android:layout_marginLeft="5dp"
+            android:textSize="14sp"
+            android:text="abcd"/>
+        <!--<TextView
             android:id="@+id/fragment_my_user_number"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@+id/fragment_my_image"
-            android:layout_below="@+id/fragment_my_title"/>
-        </RelativeLayout>
+            android:layout_below="@+id/fragment_my_title"/>-->
+        </LinearLayout>
     <ListView
         android:id="@+id/fragment_my_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"/>
+        android:background="#ffffff"
+        android:layout_marginTop="20dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"/>
 
 </LinearLayout>

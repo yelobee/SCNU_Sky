@@ -1,5 +1,6 @@
 package com.example.administrator.huashixingkong.activity;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -24,13 +25,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.administrator.huashixingkong.R;
-import com.example.administrator.huashixingkong.tools.LoginHttpURLConnection;
 import com.example.administrator.huashixingkong.tools.MyHttp;
-import com.example.administrator.huashixingkong.tools.UserJson;
+import com.example.administrator.huashixingkong.tools.JsonAnalysis;
 
 import org.json.JSONException;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -45,21 +44,24 @@ public class PersonalInformationActivity extends ActionBarActivity {
     private static int output_Y = 480;
 
     private ListView listView;
-    private String title[] = {"姓名","性别","地区","兴趣","个性签名"};
-    private String content[] = {"username","sex","address","hobby","signature"};
+    private static String title[] = {"性别","地区","兴趣","个性签名"};
+    private static String content[] = {"sex","address","hobby","signature"};
     private LinearLayout linearLayout;
     private ImageView headImage = null;
+    private TextView textView;
 
     private String name;
     private ArrayList<HashMap<String,Object>> data;
-
+    private ProgressDialog progressDialog;
+    private PersonalInformationAdapter personalInformationAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_personal_information);
-
+        progressDialog = ProgressDialog.show(PersonalInformationActivity.this, "Loading...", "Please wait...", true, false);
         linearLayout = (LinearLayout) findViewById(R.id.head_image);
+        textView = (TextView) findViewById(R.id.activity_personal_information_text);
         linearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -69,17 +71,27 @@ public class PersonalInformationActivity extends ActionBarActivity {
 
         SharedPreferences preferences = this.getSharedPreferences("userData",0);
         name =  preferences.getString("username","");
-        data = new ArrayList<HashMap<String, Object>>();
+        data = new ArrayList<>();
 
         Thread informationThread = new Thread(new InformationThread());
         informationThread.start();
 
+        textView.setText(name);
         listView = (ListView) findViewById(R.id.activity_personal_information_list);
-        PersonalInformationAdapter personalInformationAdapter = new PersonalInformationAdapter(PersonalInformationActivity.this);
+        personalInformationAdapter = new PersonalInformationAdapter(PersonalInformationActivity.this);
         listView.setAdapter(personalInformationAdapter);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         SetListItemOnClick();
+    }
+
+    @Override
+    protected void onRestart() {
+        Log.d("abc","信息重新进入");
+        progressDialog.show();
+        Thread informationThread = new Thread(new InformationThread());
+        informationThread.start();
+        super.onRestart();
     }
 
     Handler handler = new Handler(){
@@ -87,12 +99,19 @@ public class PersonalInformationActivity extends ActionBarActivity {
         public void handleMessage(Message msg) {
             switch (msg.what){
                 case 0:
+                    //关闭ProgressDialog
+                    progressDialog.dismiss();
                     Toast.makeText(getApplicationContext(), "成功！", Toast.LENGTH_SHORT).show();
+                    personalInformationAdapter.notifyDataSetChanged();
                     //data = (ArrayList<HashMap<String, Object>>) msg.obj;
+
                     break;
                 case 1:
+                    progressDialog.dismiss();
                     Toast.makeText(getApplicationContext(), "错误", Toast.LENGTH_SHORT).show();
-
+                    break;
+                case 2:
+                    progressDialog.dismiss();
                     break;
             }
         }
@@ -102,19 +121,25 @@ public class PersonalInformationActivity extends ActionBarActivity {
 
         @Override
         public void run() {
-            UserJson userJson = new UserJson();
+            String str;
             try {
-                data = userJson.Analysis(MyHttp.save(name));
-                Log.d("abc",data.toString());
+                str = MyHttp.save(name);
                 Message msg = handler.obtainMessage();
-                if(!data.isEmpty()){
-                    Log.d("abc","ok");
-                    msg.what = 0;
-                    msg.obj = data;
-                    handler.sendMessage(msg);
+                if(str!=null) {
+                    data = JsonAnalysis.UserAnalysis(str);
+                    Log.d("abc", data.toString());
+                    if (!data.isEmpty()) {
+                        Log.d("abc", "ok");
+                        msg.what = 0;
+                        msg.obj = data;
+                        handler.sendMessage(msg);
+                    } else {
+                        Log.d("abc", "error");
+                        msg.what = 1;
+                        handler.sendMessage(msg);
+                    }
                 }else{
-                    Log.d("abc","error");
-                    msg.what = 1;
+                    msg.what = 2;
                     handler.sendMessage(msg);
                 }
             } catch (JSONException e) {
@@ -216,9 +241,9 @@ public class PersonalInformationActivity extends ActionBarActivity {
     }
 
     private ArrayList<HashMap<String,Object>> getDate(){
-        ArrayList<HashMap<String, Object>> listItem = new ArrayList<HashMap<String, Object>>();
-        for (int i=0;i<5;i++){
-            HashMap<String, Object> map = new HashMap<String, Object>();
+        ArrayList<HashMap<String, Object>> listItem = new ArrayList<>();
+        for (int i=0;i<4;i++){
+            HashMap<String, Object> map = new HashMap<>();
             map.put("ItemTitle", title[i]);
             listItem.add(map);
         }
@@ -230,7 +255,14 @@ public class PersonalInformationActivity extends ActionBarActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent();
-                intent.setClass(PersonalInformationActivity.this, ModifyActivity.class);
+                intent.putExtra("name",name);
+                intent.putExtra("title",content[position]);
+                intent.putExtra("content",((TextView)view.findViewById(R.id.personal_information_message)).getText());
+                if(position == 0){
+                    intent.setClass(PersonalInformationActivity.this, SexChangeActivity.class);
+                }else{
+                    intent.setClass(PersonalInformationActivity.this, ModifyActivity.class);
+                }
                 startActivity(intent);
             }
         });

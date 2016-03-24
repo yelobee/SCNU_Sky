@@ -9,6 +9,7 @@
     <string name="password">密&#160;&#160;&#160;&#160;码:</string>
     <string name="sex">性&#160;&#160;&#160;&#160;别:</string>
     <string name="old_password">旧密码:</string>
+    <string name="new_password">新密码:</string>
     <string name="check_password">确认密码:</string>
     <string name="login">登录</string>
     <string name="register">注册</string>
@@ -19,4 +20,9 @@
     <string name="title_activity_personal_information">PersonalInformationActivity</string>
     <string name="title_activity_discuss_page">DiscussPageActivity</string>
     <string name="title_activity_modify">ModifyActivity</string>
+    <string name="title_activity_sex_change">SexChangeActivity</string>
+    <string name="title_activity_setting">SettingActivity</string>
+    <string name="title_activity_update_password">UpdatePasswordActivity</string>
+    <string name="title_activity_">ActivityActivity</string>
+    <string name="title_activity_act">ActActivity</string>
 </resources>

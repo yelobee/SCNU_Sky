@@ -17,13 +17,9 @@ import android.widget.Toast;
 
 import com.example.administrator.huashixingkong.R;
 import com.example.administrator.huashixingkong.tools.LoginHttpURLConnection;
-import com.example.administrator.huashixingkong.tools.UserJson;
 
-import org.json.JSONException;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 
 public class LoginActivity extends ActionBarActivity implements View.OnClickListener{
@@ -61,12 +57,17 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
                     Intent loginIntent = new Intent();
                     loginIntent.setClass(LoginActivity.this, MainActivity.class);
                     startActivity(loginIntent);
+                    finish();
                     break;
                 case 1:
-                    Toast.makeText(getApplicationContext(), "密码错误", Toast.LENGTH_SHORT).show();
-                   /* Intent loginIntent2 = new Intent();
+                    Toast.makeText(getApplicationContext(), "用户名或密码错误", Toast.LENGTH_SHORT).show();
+                    break;
+                case 2:
+                    Toast.makeText(getApplicationContext(), "连接错误", Toast.LENGTH_SHORT).show();
+                    Intent loginIntent2 = new Intent();
                     loginIntent2.setClass(LoginActivity.this, MainActivity.class);
-                    startActivity(loginIntent2);*/
+                    startActivity(loginIntent2);
+                    finish();
                     break;
             }
         }
@@ -128,15 +129,21 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
                 password = new String(password.getBytes("ISO8859-1"), "UTF-8");
 
                 result = LoginHttpURLConnection.save(name, password);
-                Log.d("abc",result);
+                //Log.d("abc",result);
                 Message msg = handler.obtainMessage();
-                if(result.equals("0")){
-                    Log.d("abc","ok");
-                    msg.what = 0;
-                    handler.sendMessage(msg);
+                if(result!=null){
+                    if(result.equals("0")){
+                        Log.d("abc","ok");
+                        msg.what = 0;
+                        handler.sendMessage(msg);
+                    }else{
+                        Log.d("abc","error");
+                        msg.what = 1;
+                        handler.sendMessage(msg);
+                    }
                 }else{
                     Log.d("abc","error");
-                    msg.what = 1;
+                    msg.what = 2;
                     handler.sendMessage(msg);
                 }
 

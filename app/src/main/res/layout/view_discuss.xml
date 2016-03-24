@@ -1,18 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    android:layout_height="match_parent"
+    android:background="#ffffff">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/view_discuss_image"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="10dp"
+            android:layout_marginLeft="20dp"
+            android:src="@drawable/abc"
+            android:adjustViewBounds="true"
+            android:background="@drawable/image_view_background"/>
+        <TextView
+            android:id="@+id/view_discuss_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:singleLine="true"
+            android:textSize="16sp"
+            android:layout_toRightOf="@id/view_discuss_image"
+            android:text="abcd"/>
+        <TextView
+            android:id="@+id/view_discuss_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:layout_toRightOf="@id/view_discuss_image"
+            android:layout_below="@id/view_discuss_name"
+            android:text="2011"/>
+    </RelativeLayout>
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/view_discuss_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="abcd"/>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:textSize="16sp"
+        android:textColor="#000000"
+        android:text="abcdefg"/>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="5dp"
+        android:background="@android:color/darker_gray"/>
 </LinearLayout>
