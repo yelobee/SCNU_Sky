@@ -1,2 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merger version="3"><dataSet config="debug"><source path="E:\android\scnu_sky\SCNU_sky\PullToRefresh\build\intermediates\bundles\debug\assets"/></dataSet><dataSet config="main"><source path="E:\android\scnu_sky\SCNU_sky\PullToRefresh\src\androidTest\assets"/></dataSet></merger>
+<merger version="3"><dataSet config="debug"><source path="/Users/yelobee_/Desktop/WorkSpace/Source/version_1.0/huashixingkong/PullToRefresh/build/intermediates/bundles/debug/assets"/></dataSet><dataSet config="main"><source path="/Users/yelobee_/Desktop/WorkSpace/Source/version_1.0/huashixingkong/PullToRefresh/src/androidTest/assets"/></dataSet></merger>
