@@ -131,7 +131,7 @@ public class DiscussViewFragment extends Fragment {
             public void run() {
                 pullToRefreshListView.setRefreshing();
             }
-        }, 3000);
+        }, 100);
         myAdapter = new DiscussViewAdapter(getActivity());
         pullToRefreshListView.setAdapter(myAdapter);
 
@@ -148,8 +148,8 @@ public class DiscussViewFragment extends Fragment {
             public void onPullDownToRefresh(PullToRefreshBase<ListView> refreshView) {
                 // 下拉刷新触发的事件
                 Log.d("abcd","autorefresh");
-                pullToRefreshListView.onRefreshComplete();
-                //new GetDataTask().execute();
+                //pullToRefreshListView.onRefreshComplete();
+                new GetDataTask().execute();
             }
 
             @Override

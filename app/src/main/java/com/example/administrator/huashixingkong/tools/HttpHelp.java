@@ -77,6 +77,17 @@ public class HttpHelp {
         return null;
     }
 
+    public static String SaveMComment(Map<String, String> MComment){
+        String path = "http://110.65.86.250:8080/scnu_sky/MCommentServlet";
+        try {
+            return SendPostRequest(path, MComment, "UTF-8");
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     private static String SendPostRequest(String path, Map<String, String> student, String ecoding) throws IOException {
         HttpClient httpClient = new DefaultHttpClient();
         HttpPost httpPost = new HttpPost(path);

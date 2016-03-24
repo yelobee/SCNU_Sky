@@ -159,7 +159,13 @@ public class CommentFragment extends Fragment {
         pullToRefreshListView = (PullToRefreshListView) view.findViewById(R.id.fragment_comment_list);
         myAdapter = new DiscussViewAdapter(getActivity());
         pullToRefreshListView.setAdapter(myAdapter);
+        new Handler().postDelayed(new Runnable() {
 
+            @Override
+            public void run() {
+                pullToRefreshListView.setRefreshing();
+            }
+        }, 100);
         //设置pull-to-refresh模式为Mode.Both
         pullToRefreshListView.setMode(PullToRefreshBase.Mode.BOTH);
 
@@ -170,8 +176,8 @@ public class CommentFragment extends Fragment {
             @Override
             public void onPullDownToRefresh(PullToRefreshBase<ListView> refreshView) {
                 // 下拉刷新触发的事件
-                pullToRefreshListView.onRefreshComplete();
-                //new GetDataTask().execute();
+                //pullToRefreshListView.onRefreshComplete();
+                new GetDataTask().execute();
             }
 
             @Override
