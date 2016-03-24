@@ -6,6 +6,7 @@
     tools:context="com.example.administrator.huashixingkong.activity.ActActivity">
 
     <TextView
+        android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#ffffff"
@@ -59,7 +60,7 @@
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="@android:color/darker_gray"/>
-    <ListView
+    <com.handmark.pulltorefresh.library.PullToRefreshListView
         android:id="@+id/activity_act_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -71,10 +72,12 @@
         android:background="#ffffff"
         android:orientation="horizontal">
         <EditText
+            android:id="@+id/activity_act_editText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"/>
         <Button
+            android:id="@+id/activity_act_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
     </LinearLayout>

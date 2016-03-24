@@ -45,6 +45,7 @@ public class DiscussPageActivity extends ActionBarActivity {
     private ListView ListView;
     private Button button;
     private EditText editText;
+    private TextView titleView,dateView,contentView;
     private final String []selectItem1 = {"回复","删除"};
     private final String []selectItem2 = {"回复"};
     private String name;
@@ -53,8 +54,8 @@ public class DiscussPageActivity extends ActionBarActivity {
     private PullToRefreshListView pullToRefreshListView;
     private ArrayList<HashMap<String,Object>> data = new ArrayList<>();
     private int start = 0;
-    private int moodID;
     private HashMap<String, String> map; //用户输入评论
+    private HashMap<String,Object> headMessage;//头部信息
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +65,7 @@ public class DiscussPageActivity extends ActionBarActivity {
 
         preferences = this.getSharedPreferences("userData",0);
         name =  preferences.getString("username", "");
-        moodID = getIntent().getIntExtra("mood_id", 0);
+        headMessage = (HashMap<String, Object>) getIntent().getExtras().getSerializable("mood");
         initView();
         setEventListener();
 
@@ -81,6 +82,14 @@ public class DiscussPageActivity extends ActionBarActivity {
         button = (Button) findViewById(R.id.view_discuss_page_button);
         editText = (EditText) findViewById(R.id.view_discuss_page_editText);
         DiscussView discussView = new DiscussView(DiscussPageActivity.this,null);
+        titleView = (TextView) discussView.findViewById(R.id.view_discuss_name);
+        dateView = (TextView) discussView.findViewById(R.id.view_discuss_time);
+        contentView = (TextView) discussView.findViewById(R.id.view_discuss_content);
+
+        titleView.setText(headMessage.get("username").toString());
+        dateView.setText(headMessage.get("release_date").toString());
+        contentView.setText(headMessage.get("content").toString());
+
         pullToRefreshListView = (PullToRefreshListView) findViewById(R.id.view_discuss_page_list);
         myAdapter = new DiscussViewAdapter(this);
         ListView lv = pullToRefreshListView.getRefreshableView();
@@ -133,7 +142,7 @@ public class DiscussPageActivity extends ActionBarActivity {
     private HashMap<String, String> setMComment(){
         map = new HashMap<>();
         map.put("username", name);
-        map.put("mood_id", String.valueOf(moodID));
+        map.put("mood_id", String.valueOf(headMessage.get("mood_id")));
         map.put("content", editText.getText().toString().trim());
         map.put("is_reply", String.valueOf(0));
         map.put("reply_user", null);
@@ -197,7 +206,7 @@ public class DiscussPageActivity extends ActionBarActivity {
             JsonAnalysis CommentJson = new JsonAnalysis();
             String str;
             try {
-                str = HttpHelp.SaveMood(start, moodID);
+                str = HttpHelp.SaveMood(start, (Integer) headMessage.get("mood_id"));
                 Log.d("abc",str);
                 if(str!=null) {
                     data = CommentJson.CommentAnalysis(str);

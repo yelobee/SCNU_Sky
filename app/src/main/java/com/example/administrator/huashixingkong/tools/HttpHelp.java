@@ -18,12 +18,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by Administrator on 2016/3/9.
- */
 public class HttpHelp {
 
-    public static String save(String name){
+    /*public static String save(String name){
         String path = "http://110.65.86.250:8080/scnu_sky/LoginServlet";
         Map<String, String> student = new HashMap<String, String>();
         student.put("name", name);
@@ -34,11 +31,11 @@ public class HttpHelp {
             e.printStackTrace();
         }
         return null;
-    }
+    }*/
 
     public static String SaveActivity(String start){
         String path = "http://110.65.86.250:8080/scnu_sky/ActivityServlet";
-        Map<String, String> student = new HashMap<String, String>();
+        Map<String, String> student = new HashMap<>();
         student.put("start", start);
         try {
             return SendPostRequest(path, student, "UTF-8");
@@ -51,7 +48,7 @@ public class HttpHelp {
 
     public static String SaveComment(String start,String username){
         String path = "http://110.65.86.250:8080/scnu_sky/CommentServlet";
-        Map<String, String> student = new HashMap<String, String>();
+        Map<String, String> student = new HashMap<>();
         student.put("start", start);
         student.put("name", username);
         try {
@@ -88,10 +85,35 @@ public class HttpHelp {
         return null;
     }
 
+    public static String GetAComment(int start,int activityID){
+        String path = "http://110.65.86.250:8080/scnu_sky/GetAComment";
+        Map<String, String> student = new HashMap<>();
+        student.put("start", String.valueOf(start));
+        student.put("activity_id", String.valueOf(activityID));
+        try {
+            return SendPostRequest(path, student, "UTF-8");
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static String SaveAComment(Map<String, String> AComment){
+        String path = "http://110.65.86.250:8080/scnu_sky/ACommentServlet";
+        try {
+            return SendPostRequest(path, AComment, "UTF-8");
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     private static String SendPostRequest(String path, Map<String, String> student, String ecoding) throws IOException {
         HttpClient httpClient = new DefaultHttpClient();
         HttpPost httpPost = new HttpPost(path);
-        List<NameValuePair> params = new ArrayList<NameValuePair>();
+        List<NameValuePair> params = new ArrayList<>();
         for (Map.Entry<String,String> entry: student.entrySet()){
             NameValuePair nameValuePair = new BasicNameValuePair(entry.getKey(),entry.getValue());
             params.add(nameValuePair);

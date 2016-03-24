@@ -190,7 +190,9 @@ public class CommentFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent();
-                intent.putExtra("mood_id", (Integer) data.get(position-1).get("mood_id"));
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("mood",data.get(position-1));
+                intent.putExtras(bundle);
                 intent.setClass(getActivity(), DiscussPageActivity.class);
                 startActivity(intent);
             }

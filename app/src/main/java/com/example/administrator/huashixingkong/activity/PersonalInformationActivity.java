@@ -44,10 +44,11 @@ public class PersonalInformationActivity extends ActionBarActivity {
     private static int output_Y = 480;
 
     private ListView listView;
-    private static String title[] = {"姓名","性别","地区","兴趣","个性签名"};
-    private static String content[] = {"username","sex","address","hobby","signature"};
+    private static String title[] = {"性别","地区","兴趣","个性签名"};
+    private static String content[] = {"sex","address","hobby","signature"};
     private LinearLayout linearLayout;
     private ImageView headImage = null;
+    private TextView textView;
 
     private String name;
     private ArrayList<HashMap<String,Object>> data;
@@ -60,6 +61,7 @@ public class PersonalInformationActivity extends ActionBarActivity {
         setContentView(R.layout.activity_personal_information);
         progressDialog = ProgressDialog.show(PersonalInformationActivity.this, "Loading...", "Please wait...", true, false);
         linearLayout = (LinearLayout) findViewById(R.id.head_image);
+        textView = (TextView) findViewById(R.id.activity_personal_information_text);
         linearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -74,6 +76,7 @@ public class PersonalInformationActivity extends ActionBarActivity {
         Thread informationThread = new Thread(new InformationThread());
         informationThread.start();
 
+        textView.setText(name);
         listView = (ListView) findViewById(R.id.activity_personal_information_list);
         personalInformationAdapter = new PersonalInformationAdapter(PersonalInformationActivity.this);
         listView.setAdapter(personalInformationAdapter);
@@ -118,13 +121,12 @@ public class PersonalInformationActivity extends ActionBarActivity {
 
         @Override
         public void run() {
-            JsonAnalysis userJson = new JsonAnalysis();
             String str;
             try {
                 str = MyHttp.save(name);
                 Message msg = handler.obtainMessage();
                 if(str!=null) {
-                    data = userJson.UserAnalysis(str);
+                    data = JsonAnalysis.UserAnalysis(str);
                     Log.d("abc", data.toString());
                     if (!data.isEmpty()) {
                         Log.d("abc", "ok");
@@ -239,9 +241,9 @@ public class PersonalInformationActivity extends ActionBarActivity {
     }
 
     private ArrayList<HashMap<String,Object>> getDate(){
-        ArrayList<HashMap<String, Object>> listItem = new ArrayList<HashMap<String, Object>>();
-        for (int i=0;i<5;i++){
-            HashMap<String, Object> map = new HashMap<String, Object>();
+        ArrayList<HashMap<String, Object>> listItem = new ArrayList<>();
+        for (int i=0;i<4;i++){
+            HashMap<String, Object> map = new HashMap<>();
             map.put("ItemTitle", title[i]);
             listItem.add(map);
         }
@@ -256,7 +258,7 @@ public class PersonalInformationActivity extends ActionBarActivity {
                 intent.putExtra("name",name);
                 intent.putExtra("title",content[position]);
                 intent.putExtra("content",((TextView)view.findViewById(R.id.personal_information_message)).getText());
-                if(position == 1){
+                if(position == 0){
                     intent.setClass(PersonalInformationActivity.this, SexChangeActivity.class);
                 }else{
                     intent.setClass(PersonalInformationActivity.this, ModifyActivity.class);
