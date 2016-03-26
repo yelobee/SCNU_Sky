@@ -3,6 +3,7 @@ package com.example.administrator.huashixingkong.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
@@ -35,6 +36,8 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        getSupportActionBar().hide();
+
         textUserNumber = (EditText) findViewById(R.id.userNumber);
         textPassword = (EditText) findViewById(R.id.password);
 
@@ -44,8 +47,19 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
         preferences = getSharedPreferences("userData", Context.MODE_PRIVATE);
 
 
+        textUserNumber.setCompoundDrawables(setDrawable(R.drawable.login), null, null, null);//只放左边
+        textPassword.setCompoundDrawables(setDrawable(R.drawable.password), null, null, null);//只放左边
+
         loginButton.setOnClickListener(this);
         registerButton.setOnClickListener(this);
+    }
+
+    private Drawable setDrawable(int drawID){
+        Drawable drawable = getResources().getDrawable(drawID);
+        if (drawable != null) {
+            drawable.setBounds(20, 0, 70, 50);//第一0是距左边距离，第二0是距上边距离，40分别是长宽
+        }
+        return drawable;
     }
 
     Handler handler = new Handler(){
@@ -73,12 +87,6 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
         }
     };
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_login, menu);
-        return true;
-    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -88,9 +96,6 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
 
         return super.onOptionsItemSelected(item);
     }

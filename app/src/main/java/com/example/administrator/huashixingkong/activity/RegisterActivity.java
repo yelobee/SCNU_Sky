@@ -41,7 +41,8 @@ public class RegisterActivity extends ActionBarActivity implements View.OnFocusC
         sex = (Spinner) findViewById(R.id.sex);
         registerConfirm = (Button) findViewById(R.id.register_confirm);
 
-        spinnerAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,sexText);
+        spinnerAdapter = new ArrayAdapter<>(this,android.R.layout.browser_link_context_header,sexText);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.preference_category);
         sex.setAdapter(spinnerAdapter);
 
         userName.setOnFocusChangeListener(this);
@@ -116,12 +117,6 @@ public class RegisterActivity extends ActionBarActivity implements View.OnFocusC
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_register, menu);
-        return true;
-    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -130,10 +125,6 @@ public class RegisterActivity extends ActionBarActivity implements View.OnFocusC
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
         if (id == android.R.id.home){
             this.finish();
             return true;

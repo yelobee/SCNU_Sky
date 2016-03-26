@@ -1,62 +1,77 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
     android:orientation="vertical"
-    android:layout_marginLeft="20dp"
-    android:layout_marginRight="20dp">
+    android:paddingLeft="20dp"
+    android:paddingRight="20dp"
+    android:paddingTop="20dp"
+    android:background="@drawable/login_background">
     <TextView
         android:id="@+id/title_user_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="14sp"
+        android:textSize="16sp"
+        android:textColor="#ffffff"
         android:text="@string/user_name"/>
     <EditText
         android:id="@+id/user_name"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="23sp"
+        android:layout_height="40dp"
+        android:textSize="16sp"
+        android:textColorHint="@android:color/darker_gray"
+        android:background="@drawable/login_edit_text_normal"
+        android:textColor="#ffffff"
         />
     <TextView
         android:id="@+id/title_password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="14sp"
+        android:textSize="16sp"
+        android:textColor="#ffffff"
         android:text="@string/password"/>
     <EditText
         android:id="@+id/password"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="23sp"
-        android:inputType="textPassword"/>
+        android:layout_height="40dp"
+        android:textSize="16sp"
+        android:inputType="textPassword"
+        android:textColorHint="@android:color/darker_gray"
+        android:background="@drawable/login_edit_text_normal"
+        android:textColor="#ffffff"/>
     <TextView
         android:id="@+id/title_check_pass"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="14sp"
+        android:textSize="16sp"
+        android:textColor="#ffffff"
         android:text="@string/check_password"/>
     <EditText
         android:id="@+id/check_pass"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="23sp"
-        android:inputType="textPassword"/>
+        android:layout_height="40dp"
+        android:textSize="16sp"
+        android:inputType="textPassword"
+        android:textColorHint="@android:color/darker_gray"
+        android:background="@drawable/login_edit_text_normal"
+        android:textColor="#ffffff"/>
     <TextView
         android:id="@+id/title_sex"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="14sp"
+        android:textSize="16sp"
+        android:textColor="#ffffff"
         android:text="@string/sex"/>
     <Spinner
         android:id="@+id/sex"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="wrap_content"
+        android:spinnerMode="dropdown"
         />
     <Button
         android:id="@+id/register_confirm"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
-        android:textSize="23sp"
+        android:textSize="16sp"
         android:text="@string/confirm"/>
 </LinearLayout>

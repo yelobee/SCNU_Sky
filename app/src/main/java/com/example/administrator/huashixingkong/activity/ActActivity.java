@@ -67,9 +67,6 @@ public class ActActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
 
         if (id == android.R.id.home){
             this.finish();
