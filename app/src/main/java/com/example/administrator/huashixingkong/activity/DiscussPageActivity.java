@@ -86,7 +86,7 @@ public class DiscussPageActivity extends ActionBarActivity {
         dateView = (TextView) discussView.findViewById(R.id.view_discuss_time);
         contentView = (TextView) discussView.findViewById(R.id.view_discuss_content);
 
-        titleView.setText(headMessage.get("username").toString());
+        titleView.setText(headMessage.get("nickname").toString());
         dateView.setText(headMessage.get("release_date").toString());
         contentView.setText(headMessage.get("content").toString());
 
@@ -141,7 +141,7 @@ public class DiscussPageActivity extends ActionBarActivity {
 
     private HashMap<String, String> setMComment(){
         map = new HashMap<>();
-        map.put("username", name);
+        map.put("nickname", name);
         map.put("mood_id", String.valueOf(headMessage.get("mood_id")));
         map.put("content", editText.getText().toString().trim());
         map.put("is_reply", String.valueOf(0));
@@ -203,13 +203,12 @@ public class DiscussPageActivity extends ActionBarActivity {
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            JsonAnalysis CommentJson = new JsonAnalysis();
             String str;
             try {
                 str = HttpHelp.SaveMood(start, (Integer) headMessage.get("mood_id"));
                 Log.d("abc",str);
                 if(str!=null) {
-                    data = CommentJson.CommentAnalysis(str);
+                    data = JsonAnalysis.CommentAnalysis(str);
                     Log.d("abc", data.toString());
                     if (!data.isEmpty()) {
                         Log.d("abc", "ok");
@@ -300,7 +299,7 @@ public class DiscussPageActivity extends ActionBarActivity {
                 holder = (ViewHolder)convertView.getTag();//取出ViewHolder对象
             }
             /*设置TextView显示的内容，即我们存放在动态数组中的数据*/
-            holder.title.setText(data.get(position).get("username").toString());
+            holder.title.setText(data.get(position).get("nickname").toString());
             holder.content.setText(data.get(position).get("content").toString());
             holder.time.setText(data.get(position).get("release_date").toString());
             convertView.setOnClickListener(new View.OnClickListener() {
@@ -308,7 +307,7 @@ public class DiscussPageActivity extends ActionBarActivity {
                 public void onClick(View v) {
                     final AlertDialog.Builder builder = new AlertDialog.Builder(DiscussPageActivity.this);
                     builder.setTitle("ddd");
-                    if (data.get(position).get("username").toString().equals(name)) {
+                    if (data.get(position).get("nickname").toString().equals(name)) {
                         builder.setItems(selectItem1, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {

@@ -44,8 +44,8 @@ public class PersonalInformationActivity extends ActionBarActivity {
     private static int output_Y = 480;
 
     private ListView listView;
-    private static String title[] = {"性别","地区","兴趣","个性签名"};
-    private static String content[] = {"sex","address","hobby","signature"};
+    private static String title[] = {"昵称","性别","地区","兴趣","个性签名"};
+    private static String content[] = {"nickname","sex","address","hobby","signature"};
     private LinearLayout linearLayout;
     private ImageView headImage = null;
     private TextView textView;
@@ -232,7 +232,7 @@ public class PersonalInformationActivity extends ActionBarActivity {
 
     private ArrayList<HashMap<String,Object>> getDate(){
         ArrayList<HashMap<String, Object>> listItem = new ArrayList<>();
-        for (int i=0;i<4;i++){
+        for (int i=0;i<5;i++){
             HashMap<String, Object> map = new HashMap<>();
             map.put("ItemTitle", title[i]);
             listItem.add(map);
@@ -248,7 +248,7 @@ public class PersonalInformationActivity extends ActionBarActivity {
                 intent.putExtra("name",name);
                 intent.putExtra("title",content[position]);
                 intent.putExtra("content",((TextView)view.findViewById(R.id.personal_information_message)).getText());
-                if(position == 0){
+                if(position == 1){
                     intent.setClass(PersonalInformationActivity.this, SexChangeActivity.class);
                 }else{
                     intent.setClass(PersonalInformationActivity.this, ModifyActivity.class);

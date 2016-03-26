@@ -26,11 +26,11 @@ import java.util.Map;
 public class RegisterHttp {
     private static final String httpUrl = "http://110.65.86.250:8080/scnu_sky/RegisterServlet";
 
-    public static String save(String username, String password, String sex) throws Exception {
+    public static String save(String username, String password, String nickname) throws Exception {
         Map<String,String> datas = new HashMap<String,String>();
         datas.put("username",username);
         datas.put("password",password);
-        datas.put("sex",sex);
+        datas.put("nickname",nickname);
         return SendPostRequest(datas);
     }
 

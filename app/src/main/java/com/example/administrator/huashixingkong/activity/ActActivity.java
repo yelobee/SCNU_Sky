@@ -198,13 +198,12 @@ public class ActActivity extends ActionBarActivity {
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            JsonAnalysis CommentJson = new JsonAnalysis();
             String str;
             try {
                 str = HttpHelp.GetAComment(start, (Integer) headMessage.get("activity_id"));
                 Log.d("abc",str);
                 if(str!=null) {
-                    data = CommentJson.ACommentAnalysis(str);
+                    data = JsonAnalysis.ACommentAnalysis(str);
                     Log.d("abc", data.toString());
                     if (!data.isEmpty()) {
                         Log.d("abc", "ok");
@@ -269,7 +268,7 @@ public class ActActivity extends ActionBarActivity {
                 holder = (ViewHolder)convertView.getTag();//取出ViewHolder对象
             }
             /*设置TextView显示的内容，即我们存放在动态数组中的数据*/
-            holder.title.setText(data.get(position).get("username").toString());
+            holder.title.setText(data.get(position).get("nickname").toString());
             holder.content.setText(data.get(position).get("content").toString());
             holder.time.setText(data.get(position).get("release_date").toString());
             return convertView;

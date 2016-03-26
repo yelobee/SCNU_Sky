@@ -203,12 +203,11 @@ public class CommentFragment extends Fragment {
 
         @Override
         protected ArrayList<HashMap<String,Object>> doInBackground(Void... params) {
-            JsonAnalysis CommentJson = new JsonAnalysis();
             String str;
             try {
                 str = HttpHelp.SaveComment(String.valueOf(start), name);
                 if(str!=null) {
-                    data = CommentJson.MoodAnalysis(str);
+                    data = JsonAnalysis.MoodAnalysis(str);
                     Log.d("abc", data.toString());
                     if (!data.isEmpty()) {
                         Log.d("abc", "ok");
@@ -329,7 +328,7 @@ public class CommentFragment extends Fragment {
             }
             /*设置TextView显示的内容，即我们存放在动态数组中的数据*/
             holder.image.setImageResource(R.drawable.abc);
-            holder.title.setText(data.get(position).get("username").toString());
+            holder.title.setText(data.get(position).get("nickname").toString());
             holder.message.setText(data.get(position).get("content").toString());
             holder.date.setText(data.get(position).get("release_date").toString() + "发布");
             return convertView;

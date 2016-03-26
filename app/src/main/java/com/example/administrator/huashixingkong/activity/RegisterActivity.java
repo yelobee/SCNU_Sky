@@ -1,5 +1,6 @@
 package com.example.administrator.huashixingkong.activity;
 
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
@@ -24,7 +25,7 @@ public class RegisterActivity extends ActionBarActivity implements View.OnFocusC
     private EditText userName;
     private EditText passWord;
     private EditText checkPass;
-    private Spinner sex;
+    private EditText nickName;
     private Button registerConfirm;
     private ArrayAdapter<String> spinnerAdapter;
     private boolean flag = false; //判断数据是否符合要求标志
@@ -38,16 +39,19 @@ public class RegisterActivity extends ActionBarActivity implements View.OnFocusC
         userName = (EditText) findViewById(R.id.user_name);
         passWord = (EditText) findViewById(R.id.password);
         checkPass = (EditText) findViewById(R.id.check_pass);
-        sex = (Spinner) findViewById(R.id.sex);
+        nickName = (EditText) findViewById(R.id.nick_name);
         registerConfirm = (Button) findViewById(R.id.register_confirm);
 
-        spinnerAdapter = new ArrayAdapter<>(this,android.R.layout.browser_link_context_header,sexText);
-        spinnerAdapter.setDropDownViewResource(android.R.layout.preference_category);
-        sex.setAdapter(spinnerAdapter);
+
+        userName.setCompoundDrawables(setDrawable(R.drawable.login), null, null, null);//只放左边
+        passWord.setCompoundDrawables(setDrawable(R.drawable.password), null, null, null);
+        checkPass.setCompoundDrawables(setDrawable(R.drawable.password), null, null, null);
+        nickName.setCompoundDrawables(setDrawable(R.drawable.nickname), null, null, null);
 
         userName.setOnFocusChangeListener(this);
         passWord.setOnFocusChangeListener(this);
         checkPass.setOnFocusChangeListener(this);
+        nickName.setOnFocusChangeListener(this);
 
         registerConfirm.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -60,6 +64,14 @@ public class RegisterActivity extends ActionBarActivity implements View.OnFocusC
             }
         });
 
+    }
+
+    private Drawable setDrawable(int drawID){
+        Drawable drawable = getResources().getDrawable(drawID);
+        if (drawable != null) {
+            drawable.setBounds(20, 0, 70, 50);//第一0是距左边距离，第二0是距上边距离，40分别是长宽
+        }
+        return drawable;
     }
 
     Handler handler = new Handler(){
@@ -90,14 +102,9 @@ public class RegisterActivity extends ActionBarActivity implements View.OnFocusC
         @Override
         public void run() {
             String result = null;
-            String name;
-            String pass;
-            String sexText;
             try {
-                name = userName.getText().toString().trim();
-                pass = passWord.getText().toString().trim();
-                sexText = (String) sex.getSelectedItem();
-                result = RegisterHttp.save(name , pass , sexText);
+                result = RegisterHttp.save(userName.getText().toString().trim() ,
+                        passWord.getText().toString().trim() , nickName.getText().toString().trim());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -132,7 +139,7 @@ public class RegisterActivity extends ActionBarActivity implements View.OnFocusC
         return super.onOptionsItemSelected(item);
     }
 
-    private boolean checkEdit(){
+   /* private boolean checkEdit(){
         if(userName.getText().toString().trim().equals("")){
             Toast.makeText(RegisterActivity.this, "用户名不能为空", Toast.LENGTH_SHORT).show();
         }else if(passWord.getText().toString().trim().equals("")){
@@ -143,7 +150,7 @@ public class RegisterActivity extends ActionBarActivity implements View.OnFocusC
             return true;
         }
         return false;
-    }
+    }*/
 
     @Override
     public void onFocusChange(View v, boolean hasFocus) {
@@ -158,13 +165,22 @@ public class RegisterActivity extends ActionBarActivity implements View.OnFocusC
                         userName.setHint(hint);
                         flag = false;
                     }else{
-                        flag = true;
+                        if(userName.getText().toString().trim().length()>10){
+                            userName.setText("");
+                            hint = "用户名不能大于10位";
+                            userName.setHintTextColor(getResources().getColor(android.R.color.holo_red_light));
+                            userName.setHint(hint);
+                            flag = false;
+                        }else{
+                            flag = true;
+                        }
                     }
                     break;
                 case R.id.password:
-                    if(passWord.getText().toString().trim().length()<6){
+                    if(passWord.getText().toString().trim().length()<6||
+                            passWord.getText().toString().trim().length()>15){
                         passWord.setText("");
-                        hint = "密码不能小于6个字符";
+                        hint = "密码不能小于6或大于15个字符";
                         passWord.setHintTextColor(getResources().getColor(android.R.color.holo_red_light));
                         passWord.setHint(hint);
                         flag = false;
@@ -181,6 +197,25 @@ public class RegisterActivity extends ActionBarActivity implements View.OnFocusC
                         flag = false;
                     }else{
                         flag = true;
+                    }
+                    break;
+                case R.id.nick_name:
+                    if (nickName.getText().toString().trim().equals("")) {
+                        nickName.setText("");
+                        hint = "昵称不能为空";
+                        nickName.setHintTextColor(getResources().getColor(android.R.color.holo_red_light));
+                        nickName.setHint(hint);
+                        flag = false;
+                    }else{
+                        if(nickName.getText().toString().trim().length()>10){
+                            nickName.setText("");
+                            hint = "昵称不能大于10位";
+                            nickName.setHintTextColor(getResources().getColor(android.R.color.holo_red_light));
+                            nickName.setHint(hint);
+                            flag = false;
+                        }else{
+                            flag = true;
+                        }
                     }
                     break;
             }

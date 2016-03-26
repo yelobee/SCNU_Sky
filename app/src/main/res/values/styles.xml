@@ -6,12 +6,12 @@
         <item name="android:actionBarStyle">@style/CustomActionBar</item>
     </style>
 
-    <style name="CustomActionBar" parent="@android:style/Widget.DeviceDefault.ActionBar">
+    <style name="CustomActionBar" parent="@style/Theme.AppCompat.Light.DarkActionBar">
         <item name="android:titleTextStyle">@style/ActionBarTitle</item>
     </style>
 
-    <style name="ActionBarTitle" parent="@android:style/TextAppearance.Holo.Large">
-        <item name="android:textColor">@android:color/holo_blue_bright</item>
+    <style name="ActionBarTitle" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:textColor">#abcdef</item>
         <item name="android:textSize">20sp</item>
     </style>
 

@@ -5,7 +5,9 @@
     android:paddingLeft="20dp"
     android:paddingRight="20dp"
     android:paddingTop="20dp"
-    android:background="@drawable/login_background">
+    android:background="@drawable/login_background"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
     <TextView
         android:id="@+id/title_user_name"
         android:layout_width="match_parent"
@@ -18,9 +20,10 @@
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:textSize="16sp"
+        android:hint="@string/user_name"
+        android:drawablePadding="20dp"
         android:textColorHint="@android:color/darker_gray"
-        android:background="@drawable/login_edit_text_normal"
-        android:textColor="#ffffff"
+        android:background="@drawable/register_edit_text_normal"
         />
     <TextView
         android:id="@+id/title_password"
@@ -34,10 +37,11 @@
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:textSize="16sp"
-        android:inputType="textPassword"
+        android:hint="@string/password"
+        android:drawablePadding="20dp"
         android:textColorHint="@android:color/darker_gray"
-        android:background="@drawable/login_edit_text_normal"
-        android:textColor="#ffffff"/>
+        android:background="@drawable/register_edit_text_normal"
+        android:inputType="textPassword"/>
     <TextView
         android:id="@+id/title_check_pass"
         android:layout_width="match_parent"
@@ -50,28 +54,35 @@
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:textSize="16sp"
-        android:inputType="textPassword"
+        android:hint="@string/check_password"
+        android:drawablePadding="20dp"
         android:textColorHint="@android:color/darker_gray"
-        android:background="@drawable/login_edit_text_normal"
-        android:textColor="#ffffff"/>
+        android:background="@drawable/register_edit_text_normal"
+        android:inputType="textPassword"/>
     <TextView
-        android:id="@+id/title_sex"
+        android:id="@+id/title_nick_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="16sp"
         android:textColor="#ffffff"
-        android:text="@string/sex"/>
-    <Spinner
-        android:id="@+id/sex"
+        android:text="@string/nick_name"/>
+    <EditText
+        android:id="@+id/nick_name"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:spinnerMode="dropdown"
+        android:layout_height="40dp"
+        android:textSize="16sp"
+        android:hint="@string/nick_name"
+        android:drawablePadding="20dp"
+        android:textColorHint="@android:color/darker_gray"
+        android:background="@drawable/register_edit_text_normal"
         />
     <Button
         android:id="@+id/register_confirm"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#60ccffff"
         android:layout_marginTop="30dp"
         android:textSize="16sp"
+        android:textColor="@drawable/register_button"
         android:text="@string/confirm"/>
 </LinearLayout>

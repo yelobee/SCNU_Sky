@@ -3,6 +3,7 @@ package com.example.administrator.huashixingkong.fragment;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -27,17 +28,39 @@ import java.util.HashMap;
 
 public class MyFragment extends Fragment {
     private ListView listView;
+    private TextView textView;
     private LinearLayout linearLayout;
     private String []title = {"设置","关于软件","退出登录"};
     private int [] image_id = {R.drawable.option,R.drawable.about,R.drawable.exit};
+    private View view;
+    private SharedPreferences preferences;
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_my,container,false);
+        if (view == null){
+            view = inflater.inflate(R.layout.fragment_my,container,false);
+            preferences = getActivity().getSharedPreferences("userData",0);
+            initView(view);
+            setEventListener();
+        }
+        ViewGroup parent = (ViewGroup) view.getParent();
+        if (parent != null) {
+            parent.removeView(view);
+        }
+        return view;
+    }
+
+    private void initView(View view){
+        textView = (TextView) view.findViewById(R.id.fragment_my_title);
         listView = (ListView) view.findViewById(R.id.fragment_my_list);
+        linearLayout = (LinearLayout)view.findViewById(R.id.fragment_my_personal_information);
+
+        textView.setText(preferences.getString("username",""));
+
         MyAdapter myAdapter = new MyAdapter(getActivity());
         listView.setAdapter(myAdapter);
+    }
 
-        linearLayout = (LinearLayout)view.findViewById(R.id.fragment_my_personal_information);
+    private void setEventListener(){
         linearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -63,9 +86,8 @@ public class MyFragment extends Fragment {
                 }
             }
         });
-
-        return view;
     }
+
     private ArrayList<HashMap<String,Object>> getDate(){
         ArrayList<HashMap<String, Object>> listItem = new ArrayList<>();
         for (int i=0;i<3;i++){

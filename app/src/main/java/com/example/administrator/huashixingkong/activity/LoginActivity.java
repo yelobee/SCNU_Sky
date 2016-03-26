@@ -1,5 +1,6 @@
 package com.example.administrator.huashixingkong.activity;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -29,6 +30,7 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
     private Button registerButton;
     private EditText textUserNumber = null;
     private EditText textPassword = null;
+    private ProgressDialog progressDialog;
     private SharedPreferences preferences;
 
     @Override
@@ -84,6 +86,7 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
                     finish();
                     break;
             }
+            progressDialog.dismiss();
         }
     };
 
@@ -108,7 +111,8 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
                 SharedPreferences.Editor editor = preferences.edit();
                 editor.putString("username",textUserNumber.getText().toString());
                 editor.putString("password",textPassword.getText().toString());
-                editor.commit();
+                editor.apply();
+                progressDialog = ProgressDialog.show(LoginActivity.this, "Log In...", "Please wait...", true, false);
                 Thread loginThread = new Thread(new LoginThread());
                 loginThread.start();
                 break;

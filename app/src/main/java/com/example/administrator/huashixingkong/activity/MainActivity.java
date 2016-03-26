@@ -79,10 +79,10 @@ public class MainActivity extends ActionBarActivity {
     private View getTabItemView(int index){
         View view = layoutInflater.inflate(R.layout.tab_item, null);
 
-        ImageView imageView = (ImageView) view.findViewById(R.id.imageview);
+        ImageView imageView = (ImageView) view.findViewById(R.id.image_view);
         imageView.setImageResource(mImageViewArray[index]);
 
-        TextView textView = (TextView) view.findViewById(R.id.textview);
+        TextView textView = (TextView) view.findViewById(R.id.text_view);
         textView.setText(mTextViewArray[index]);
 
         return view;
