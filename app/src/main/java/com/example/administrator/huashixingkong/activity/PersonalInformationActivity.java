@@ -1,13 +1,19 @@
 package com.example.administrator.huashixingkong.activity;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,27 +33,34 @@ import android.widget.Toast;
 import com.example.administrator.huashixingkong.R;
 import com.example.administrator.huashixingkong.tools.MyHttp;
 import com.example.administrator.huashixingkong.tools.JsonAnalysis;
+import com.example.administrator.huashixingkong.tools.UpLoadImage;
 
 import org.json.JSONException;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class PersonalInformationActivity extends ActionBarActivity {
 
     /* 请求识别码 */
-    private static final int CODE_GALLERY_REQUEST = 0xa0;
-    private static final int CODE_RESULT_REQUEST = 0xa1;
+    private static final int REQUEST_CODE_TAKE = 0xa0;
+    private static final int REQUEST_CODE_PICK = 0xa1;
+    private static final int REQUEST_CODE_CUTTING = 0xa2;
 
-    // 裁剪后图片的宽(X)和高(Y),480 X 480的正方形。
-    private static int output_X = 480;
-    private static int output_Y = 480;
+    /*头像名称*/
+    private static final String IMAGE_FILE_NAME = "headImage.jpg";
+
+    // 裁剪后图片的宽(X)和高(Y),300 X 300的正方形。
+    private static int output_X = 300;
+    private static int output_Y = 300;
 
     private ListView listView;
     private static String title[] = {"昵称","性别","地区","兴趣","个性签名"};
     private static String content[] = {"nickname","sex","address","hobby","signature"};
+    private String []selectItem = {"拍照","从相册选择"};
     private LinearLayout linearLayout;
-    private ImageView headImage = null;
+    private ImageView headImage;
     private TextView textView;
 
     private String name;
@@ -61,11 +74,12 @@ public class PersonalInformationActivity extends ActionBarActivity {
         setContentView(R.layout.activity_personal_information);
         progressDialog = ProgressDialog.show(PersonalInformationActivity.this, "Loading...", "Please wait...", true, false);
         linearLayout = (LinearLayout) findViewById(R.id.head_image);
+        headImage = (ImageView) findViewById(R.id.activity_personal_information_image);
         textView = (TextView) findViewById(R.id.activity_personal_information_text);
         linearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                choseHeadImageFromGallery();
+                showDialog();
             }
         });
 
@@ -83,6 +97,46 @@ public class PersonalInformationActivity extends ActionBarActivity {
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         SetListItemOnClick();
+    }
+
+    private void showDialog(){
+        final AlertDialog.Builder builder = new AlertDialog.Builder(PersonalInformationActivity.this);
+        builder.setTitle("设置头像");
+        builder.setItems(selectItem, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case 0:
+                        Intent takeIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                        //指定调用相机拍照后的照片存储的路径
+                        if (isSdcardExisting()) {
+                            takeIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                                    Uri.fromFile(new File(Environment.getExternalStorageDirectory(), IMAGE_FILE_NAME)));
+                            startActivityForResult(takeIntent, REQUEST_CODE_TAKE);
+                        }else{
+                            Toast.makeText(getApplicationContext(), "请插入sd卡", Toast.LENGTH_LONG)
+                                    .show();
+                        }
+                        break;
+                    case 1:
+                        Intent pickIntent = new Intent(Intent.ACTION_PICK, null);
+                        // 如果朋友们要限制上传到服务器的图片类型时可以直接写如：image/jpeg 、 image/png等的类型
+                        pickIntent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
+                        startActivityForResult(pickIntent, REQUEST_CODE_PICK);
+                        break;
+                }
+            }
+        });
+        builder.create().show();
+    }
+
+    private boolean isSdcardExisting() {
+        final String state = Environment.getExternalStorageState();
+        if (state.equals(Environment.MEDIA_MOUNTED)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -148,14 +202,6 @@ public class PersonalInformationActivity extends ActionBarActivity {
         }
     }
 
-    // 从本地相册选取图片作为头像
-    private void choseHeadImageFromGallery() {
-        Intent intentFromGallery = new Intent();
-        // 设置文件类型
-        intentFromGallery.setType("image/*");
-        intentFromGallery.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(intentFromGallery, CODE_GALLERY_REQUEST);
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -165,15 +211,26 @@ public class PersonalInformationActivity extends ActionBarActivity {
             return;
         }
         switch (requestCode) {
-            case CODE_GALLERY_REQUEST:
-                cropRawPhoto(data.getData());
-                break;
-
-            case CODE_RESULT_REQUEST:
-                if (data != null) {
-                    setImageToHeadView(data);
+            case REQUEST_CODE_PICK:// 直接从相册获取
+                try {
+                    startPhotoZoom(data.getData());
+                } catch (NullPointerException e) {
+                    e.printStackTrace();// 用户点击取消操作
                 }
-
+                break;
+            case REQUEST_CODE_TAKE:// 调用相机拍照
+                if (isSdcardExisting()) {
+                    File temp = new File(Environment.getExternalStorageDirectory() + "/" + IMAGE_FILE_NAME);
+                    startPhotoZoom(Uri.fromFile(temp));
+                }else {
+                    Toast.makeText(getApplicationContext(), "未找到存储卡，无法存储照片！",
+                            Toast.LENGTH_LONG).show();
+                }
+                break;
+            case REQUEST_CODE_CUTTING:// 取得裁剪后的图片
+                if (data != null) {
+                    setPicToView(data);
+                }
                 break;
         }
         super.onActivityResult(requestCode, resultCode, data);
@@ -182,7 +239,7 @@ public class PersonalInformationActivity extends ActionBarActivity {
     /**
      * 裁剪原始的图片
      */
-    public void cropRawPhoto(Uri uri) {
+    public void startPhotoZoom(Uri uri) {
 
         Intent intent = new Intent("com.android.camera.action.CROP");
         intent.setDataAndType(uri, "image/*");
@@ -199,20 +256,29 @@ public class PersonalInformationActivity extends ActionBarActivity {
         intent.putExtra("outputY", output_Y);
         intent.putExtra("return-data", true);
 
-        startActivityForResult(intent, CODE_RESULT_REQUEST);
+        startActivityForResult(intent, REQUEST_CODE_CUTTING);
     }
 
     /**
      * 提取保存裁剪之后的图片数据，并设置头像部分的View
      */
-    private void setImageToHeadView(Intent intent) {
+    private void setPicToView(Intent intent) {
         Bundle extras = intent.getExtras();
         if (extras != null) {
             Bitmap photo = extras.getParcelable("data");
-            headImage.setImageBitmap(photo);
+            Drawable drawable = new BitmapDrawable(null, photo);
+            headImage.setImageDrawable(drawable);
         }
     }
 
+    class ImageThread implements Runnable{
+
+        @Override
+        public void run() {
+            File file = new File(Environment.getExternalStorageDirectory() + "/" + IMAGE_FILE_NAME);
+            UpLoadImage.uploadFile(file);
+        }
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

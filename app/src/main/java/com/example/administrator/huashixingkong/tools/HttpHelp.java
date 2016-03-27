@@ -60,10 +60,9 @@ public class HttpHelp {
         return null;
     }
 
-    public static String SaveMood(int start,int moodID){
+    public static String SaveMood(int moodID){
         String path = "http://110.65.86.250:8080/scnu_sky/MoodServlet";
         Map<String, String> student = new HashMap<>();
-        student.put("start", String.valueOf(start));
         student.put("mood_id", String.valueOf(moodID));
         try {
             return SendPostRequest(path, student, "UTF-8");
@@ -85,10 +84,9 @@ public class HttpHelp {
         return null;
     }
 
-    public static String GetAComment(int start,int activityID){
+    public static String GetAComment(int activityID){
         String path = "http://110.65.86.250:8080/scnu_sky/GetAComment";
         Map<String, String> student = new HashMap<>();
-        student.put("start", String.valueOf(start));
         student.put("activity_id", String.valueOf(activityID));
         try {
             return SendPostRequest(path, student, "UTF-8");
@@ -103,6 +101,20 @@ public class HttpHelp {
         String path = "http://110.65.86.250:8080/scnu_sky/ACommentServlet";
         try {
             return SendPostRequest(path, AComment, "UTF-8");
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static String SaveDelete(int tag,int ID){
+        String path = "http://110.65.86.250:8080/scnu_sky/DeleteCommentServlet";
+        Map<String, String> student = new HashMap<>();
+        student.put("tag", String.valueOf(tag));
+        student.put("commentID", String.valueOf(ID));
+        try {
+            return SendPostRequest(path, student, "UTF-8");
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

@@ -1,6 +1,9 @@
 package com.example.administrator.huashixingkong.activity;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -22,6 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.administrator.huashixingkong.R;
+import com.example.administrator.huashixingkong.tools.DeleteThread;
 import com.example.administrator.huashixingkong.tools.HttpHelp;
 import com.example.administrator.huashixingkong.tools.JsonAnalysis;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
@@ -37,6 +41,8 @@ public class ActActivity extends ActionBarActivity {
     private Button button;
     private EditText editText;
     private TextView titleView,dateView,contentView;
+    private final String []selectItem1 = {"删除"};
+    private final String []selectItem2 = {"回复"};
     private String name;
     private SharedPreferences preferences;
     private DiscussViewAdapter myAdapter;
@@ -140,8 +146,13 @@ public class ActActivity extends ActionBarActivity {
         map.put("activity_id", String.valueOf(headMessage.get("activity_id")));
         map.put("content", editText.getText().toString().trim());
         map.put("is_reply", String.valueOf(0));
-        map.put("reply_user", null);
+        map.put("reply_tag", String.valueOf(0));
         map.put("like_count", String.valueOf(0));
+        if(data.size()!=0){
+            map.put("tag", data.get(0).get("tag").toString());
+        }else{
+            map.put("tag", String.valueOf(1));
+        }
         return map;
     }
 
@@ -200,17 +211,17 @@ public class ActActivity extends ActionBarActivity {
         protected Boolean doInBackground(Void... params) {
             String str;
             try {
-                str = HttpHelp.GetAComment(start, (Integer) headMessage.get("activity_id"));
+                str = HttpHelp.GetAComment((Integer)headMessage.get("activity_id"));
                 Log.d("abc",str);
                 if(str!=null) {
                     data = JsonAnalysis.ACommentAnalysis(str);
                     Log.d("abc", data.toString());
                     if (!data.isEmpty()) {
                         Log.d("abc", "ok");
-                        return true;
                     } else {
                         Log.d("abc", "error");
                     }
+                    return true;
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -261,6 +272,7 @@ public class ActActivity extends ActionBarActivity {
                 holder = new ViewHolder();
                     /*得到各个控件的对象*/
                 holder.title = (TextView) convertView.findViewById(R.id.title);
+                holder.reply = (TextView) convertView.findViewById(R.id.reply);
                 holder.time = (TextView) convertView.findViewById(R.id.time);
                 holder.content = (TextView) convertView.findViewById(R.id.content);
                 convertView.setTag(holder);//绑定ViewHolder对象
@@ -271,11 +283,53 @@ public class ActActivity extends ActionBarActivity {
             holder.title.setText(data.get(position).get("nickname").toString());
             holder.content.setText(data.get(position).get("content").toString());
             holder.time.setText(data.get(position).get("release_date").toString());
+
+            if(data.get(position).get("is_reply").toString().equals("1")){
+                String replyStr = "回复"+data.get(position).get("reply_tag").toString()+"楼";
+                holder.reply.setText(replyStr);
+            }else{
+                holder.reply.setText("");
+            }
+
+            convertView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(ActActivity.this);
+                    builder.setTitle("ddd");
+                    if (data.get(position).get("username").toString().equals(name)) {
+                        builder.setItems(selectItem1, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Thread thread = new Thread(new DeleteThread(1,
+                                        (int)data.get(position).get("a_comment_id"),handler));
+                                thread.start();
+                            }
+                        });
+
+                    } else {
+                        builder.setItems(selectItem2, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Intent intent = new Intent();
+                                intent.putExtra("mood_id", data.get(position).get("mood_id").toString());
+                                intent.putExtra("reply_tag", data.get(position).get("tag").toString());
+                                intent.putExtra("tag", data.get(0).get("tag").toString());
+                                intent.setClass(ActActivity.this, ReplyActivity.class);
+                                startActivity(intent);
+                                dialog.dismiss();
+                            }
+                        });
+                    }
+
+                    builder.create().show();
+                }
+            });
             return convertView;
         }
     }
     public final class ViewHolder{
         public TextView title;
+        public TextView reply;
         public TextView time;
         public TextView content;
     }
