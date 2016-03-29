@@ -4,7 +4,11 @@ package com.example.administrator.huashixingkong.fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -22,13 +26,21 @@ import com.example.administrator.huashixingkong.activity.LoginActivity;
 import com.example.administrator.huashixingkong.activity.PersonalInformationActivity;
 import com.example.administrator.huashixingkong.activity.SettingActivity;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 
 public class MyFragment extends Fragment {
+
+    private static final int REQUEST_CODE_CUTTING = 0xa2;
+
+    /*头像名称*/
+    private String IMAGE_FILE_NAME;
+    private static final String IMAGE_PATH = Environment.getExternalStorageDirectory().getPath() + "/SCNU_SKY/";
     private ListView listView;
     private TextView textView;
+    private ImageView imageView;
     private LinearLayout linearLayout;
     private String []title = {"设置","关于软件","退出登录"};
     private int [] image_id = {R.drawable.option,R.drawable.about,R.drawable.exit};
@@ -38,7 +50,8 @@ public class MyFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         if (view == null){
             view = inflater.inflate(R.layout.fragment_my,container,false);
-            preferences = getActivity().getSharedPreferences("userData",0);
+            preferences = getActivity().getSharedPreferences("userData", 0);
+            IMAGE_FILE_NAME = preferences.getString("username","") + ".jpg";
             initView(view);
             setEventListener();
         }
@@ -49,12 +62,24 @@ public class MyFragment extends Fragment {
         return view;
     }
 
+    private void setHeadImage(){
+        File mFile = new File(IMAGE_PATH,IMAGE_FILE_NAME);
+        //若该文件存在
+        if (mFile.exists()) {
+            Bitmap bitmap= BitmapFactory.decodeFile(IMAGE_PATH + IMAGE_FILE_NAME);
+            imageView.setImageDrawable(new BitmapDrawable(null,bitmap));
+        }
+    }
+
     private void initView(View view){
         textView = (TextView) view.findViewById(R.id.fragment_my_title);
+        imageView = (ImageView) view.findViewById(R.id.fragment_my_image);
         listView = (ListView) view.findViewById(R.id.fragment_my_list);
         linearLayout = (LinearLayout)view.findViewById(R.id.fragment_my_personal_information);
 
-        textView.setText(preferences.getString("username",""));
+        setHeadImage();
+
+        textView.setText(preferences.getString("username", ""));
 
         MyAdapter myAdapter = new MyAdapter(getActivity());
         listView.setAdapter(myAdapter);
@@ -73,12 +98,12 @@ public class MyFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (position == 0){
+                if (position == 0) {
                     Intent intent = new Intent();
                     intent.setClass(getActivity(), SettingActivity.class);
-                    startActivity(intent);
+                    startActivityForResult(intent,REQUEST_CODE_CUTTING);
                 }
-                if (position == 2){
+                if (position == 2) {
                     Intent intent = new Intent();
                     intent.setClass(getActivity(), LoginActivity.class);
                     startActivity(intent);
@@ -86,6 +111,14 @@ public class MyFragment extends Fragment {
                 }
             }
         });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(resultCode==REQUEST_CODE_CUTTING){
+            setHeadImage();
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     private ArrayList<HashMap<String,Object>> getDate(){

@@ -12,7 +12,6 @@ import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -28,16 +27,15 @@ public class LoginHttpURLConnection {
     /**
      * 登录验证
      * @param name 姓名
-     * @param password 密码
-     * @return
+     * @param password rn
      */
     public static String save(String name, String password){
         String path = "http://110.65.86.250:8080/scnu_sky/LoginServlet";
-        Map<String, String> student = new HashMap<String, String>();
+        Map<String, String> student = new HashMap<>();
         student.put("name", name);
         student.put("password", password);
         try {
-            return SendPostRequest(path, student, "UTF-8");
+            return SimpleClient.SendPostRequest(path, student, "UTF-8");
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -51,7 +49,7 @@ public class LoginHttpURLConnection {
      * @return 请求是否成功
      * @throws Exception
      */
-    private static boolean SendGETRequest(String path, Map<String, String> student, String ecoding) throws Exception{
+ /*   private static boolean SendGETRequest(String path, Map<String, String> student, String ecoding) throws Exception{
 
 
         StringBuilder url = new StringBuilder(path);
@@ -70,12 +68,12 @@ public class LoginHttpURLConnection {
             return true;
         }
         return false;
-    }
+  } */
 
-    private static String SendPostRequest(String path, Map<String, String> student, String ecoding) throws IOException {
+  /*  private static String SendPostRequest(String path, Map<String, String> student, String ecoding) throws IOException {
         HttpClient httpClient = new DefaultHttpClient();
         HttpPost httpPost = new HttpPost(path);
-        List<NameValuePair> params = new ArrayList<NameValuePair>();
+        List<NameValuePair> params = new ArrayList<>();
         for (Map.Entry<String,String> entry: student.entrySet()){
             NameValuePair nameValuePair = new BasicNameValuePair(entry.getKey(),entry.getValue());
             params.add(nameValuePair);
@@ -89,6 +87,6 @@ public class LoginHttpURLConnection {
             return EntityUtils.toString(response.getEntity(),"UTF-8");
         }
         return null;
-    }
+    }*/
 
 }

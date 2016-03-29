@@ -20,9 +20,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.Volley;
 import com.example.administrator.huashixingkong.R;
 import com.example.administrator.huashixingkong.activity.DiscussPageActivity;
 import com.example.administrator.huashixingkong.myview.RefreshLayout;
+import com.example.administrator.huashixingkong.tools.BitmapCache;
 import com.example.administrator.huashixingkong.tools.HttpHelp;
 import com.example.administrator.huashixingkong.tools.JsonAnalysis;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
@@ -42,6 +46,8 @@ public class CommentFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
+    private static final String url = "http://110.65.86.250:8080/scnu_sky";
 
     private ListView listView;
     private RefreshLayout myRefreshListView;
@@ -289,9 +295,12 @@ public class CommentFragment extends Fragment {
     }
 
     private class DiscussViewAdapter extends BaseAdapter {
+        private ImageLoader mImageLoader;
         private LayoutInflater mInflater;//得到一个LayoutInfalter对象用来导入布局 /*构造函数*/
         public DiscussViewAdapter(Context context) {
             this.mInflater = LayoutInflater.from(context);
+            RequestQueue mQueue = Volley.newRequestQueue(context);
+            mImageLoader = new ImageLoader(mQueue, new BitmapCache());
         }
         @Override
         public int getCount() {
@@ -327,7 +336,11 @@ public class CommentFragment extends Fragment {
                 holder = (ViewHolder)convertView.getTag();//取出ViewHolder对象
             }
             /*设置TextView显示的内容，即我们存放在动态数组中的数据*/
-            holder.image.setImageResource(R.drawable.abc);
+            ImageLoader.ImageListener listener = ImageLoader.getImageListener(holder.image, android.R.drawable.ic_menu_rotate, android.R.drawable.ic_delete);
+            String filePath = (String)data.get(position).get("head_image");
+            if(null != filePath){
+                mImageLoader.get(url + filePath, listener);
+            }
             holder.title.setText(data.get(position).get("nickname").toString());
             holder.message.setText(data.get(position).get("content").toString());
             holder.date.setText(data.get(position).get("release_date").toString() + "发布");

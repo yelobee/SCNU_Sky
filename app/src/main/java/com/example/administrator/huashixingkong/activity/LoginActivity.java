@@ -138,9 +138,9 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
                 password = new String(password.getBytes("ISO8859-1"), "UTF-8");
 
                 result = LoginHttpURLConnection.save(name, password);
-                //Log.d("abc",result);
                 Message msg = handler.obtainMessage();
                 if(result!=null){
+                    Log.d("abc",result);
                     if(result.equals("0")){
                         Log.d("abc","ok");
                         msg.what = 0;
@@ -151,7 +151,7 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
                         handler.sendMessage(msg);
                     }
                 }else{
-                    Log.d("abc","error");
+                    Log.d("abc","ERROR");
                     msg.what = 2;
                     handler.sendMessage(msg);
                 }

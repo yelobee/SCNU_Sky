@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -18,7 +19,6 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,11 +33,13 @@ import android.widget.Toast;
 import com.example.administrator.huashixingkong.R;
 import com.example.administrator.huashixingkong.tools.MyHttp;
 import com.example.administrator.huashixingkong.tools.JsonAnalysis;
-import com.example.administrator.huashixingkong.tools.UpLoadImage;
+import com.example.administrator.huashixingkong.tools.SimpleClient;
 
 import org.json.JSONException;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -49,11 +51,15 @@ public class PersonalInformationActivity extends ActionBarActivity {
     private static final int REQUEST_CODE_CUTTING = 0xa2;
 
     /*头像名称*/
-    private static final String IMAGE_FILE_NAME = "headImage.jpg";
+    private String IMAGE_FILE_NAME;
+    private static final String IMAGE_PATH = Environment.getExternalStorageDirectory().getPath() + "/SCNU_SKY/";
 
     // 裁剪后图片的宽(X)和高(Y),300 X 300的正方形。
-    private static int output_X = 300;
-    private static int output_Y = 300;
+    private final static int output_X = 300;
+    private final static int output_Y = 300;
+
+    /*头像sdcard路径*/
+    private String headImageUrl;
 
     private ListView listView;
     private static String title[] = {"昵称","性别","地区","兴趣","个性签名"};
@@ -65,7 +71,7 @@ public class PersonalInformationActivity extends ActionBarActivity {
 
     private String name;
     private ArrayList<HashMap<String,Object>> data;
-    private ProgressDialog progressDialog;
+    private ProgressDialog progressDialog,pd;
     private PersonalInformationAdapter personalInformationAdapter;
 
     @Override
@@ -85,18 +91,29 @@ public class PersonalInformationActivity extends ActionBarActivity {
 
         SharedPreferences preferences = this.getSharedPreferences("userData",0);
         name =  preferences.getString("username","");
+        IMAGE_FILE_NAME = name + ".jpg";
         data = new ArrayList<>();
 
         Thread informationThread = new Thread(new InformationThread());
         informationThread.start();
 
         textView.setText(name);
+        setHeadImage();
         listView = (ListView) findViewById(R.id.activity_personal_information_list);
         personalInformationAdapter = new PersonalInformationAdapter(PersonalInformationActivity.this);
         listView.setAdapter(personalInformationAdapter);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         SetListItemOnClick();
+    }
+
+    private void setHeadImage(){
+        File mFile = new File(IMAGE_PATH,IMAGE_FILE_NAME);
+        //若该文件存在
+        if (mFile.exists()) {
+            Bitmap bitmap= BitmapFactory.decodeFile(IMAGE_PATH + IMAGE_FILE_NAME);
+            headImage.setImageDrawable(new BitmapDrawable(null,bitmap));
+        }
     }
 
     private void showDialog(){
@@ -110,8 +127,9 @@ public class PersonalInformationActivity extends ActionBarActivity {
                         Intent takeIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                         //指定调用相机拍照后的照片存储的路径
                         if (isSdcardExisting()) {
+                            isDirExisting();
                             takeIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-                                    Uri.fromFile(new File(Environment.getExternalStorageDirectory(), IMAGE_FILE_NAME)));
+                                    Uri.fromFile(new File(IMAGE_PATH, IMAGE_FILE_NAME)));
                             startActivityForResult(takeIntent, REQUEST_CODE_TAKE);
                         }else{
                             Toast.makeText(getApplicationContext(), "请插入sd卡", Toast.LENGTH_LONG)
@@ -136,6 +154,15 @@ public class PersonalInformationActivity extends ActionBarActivity {
             return true;
         } else {
             return false;
+        }
+    }
+
+    private void isDirExisting() {
+        File file = new File(IMAGE_PATH);
+        if (!file.exists()){
+            if(file.mkdir()){
+                Log.d("abc","创建文件夹");
+            }
         }
     }
 
@@ -166,6 +193,14 @@ public class PersonalInformationActivity extends ActionBarActivity {
                     break;
                 case 2:
                     progressDialog.dismiss();
+                    break;
+                case 3:
+                    Toast.makeText(getApplicationContext(), "成功！", Toast.LENGTH_SHORT).show();
+                    pd.dismiss();
+                    break;
+                case 4:
+                    Toast.makeText(getApplicationContext(), "失败！", Toast.LENGTH_SHORT).show();
+                    pd.dismiss();
                     break;
             }
         }
@@ -220,7 +255,8 @@ public class PersonalInformationActivity extends ActionBarActivity {
                 break;
             case REQUEST_CODE_TAKE:// 调用相机拍照
                 if (isSdcardExisting()) {
-                    File temp = new File(Environment.getExternalStorageDirectory() + "/" + IMAGE_FILE_NAME);
+                    isDirExisting();
+                    File temp = new File(IMAGE_PATH + IMAGE_FILE_NAME);
                     startPhotoZoom(Uri.fromFile(temp));
                 }else {
                     Toast.makeText(getApplicationContext(), "未找到存储卡，无法存储照片！",
@@ -259,6 +295,24 @@ public class PersonalInformationActivity extends ActionBarActivity {
         startActivityForResult(intent, REQUEST_CODE_CUTTING);
     }
 
+    private String saveBitmap (String fileName, Bitmap bitmap){
+        isDirExisting();
+        File file = new File(IMAGE_PATH,fileName);
+        if(file.exists()){
+            file.delete();
+        }
+        try{
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG,90,fileOutputStream); //图片压缩
+            fileOutputStream.flush();
+            fileOutputStream.close();
+            Log.i("abc", "已经保存");
+        }  catch (IOException e) {
+            e.printStackTrace();
+        }
+        return file.getPath();
+    }
+
     /**
      * 提取保存裁剪之后的图片数据，并设置头像部分的View
      */
@@ -267,7 +321,12 @@ public class PersonalInformationActivity extends ActionBarActivity {
         if (extras != null) {
             Bitmap photo = extras.getParcelable("data");
             Drawable drawable = new BitmapDrawable(null, photo);
+            headImageUrl = saveBitmap(IMAGE_FILE_NAME,photo);
             headImage.setImageDrawable(drawable);
+            setResult(REQUEST_CODE_CUTTING);
+            // 新线程后台上传服务端
+            pd = ProgressDialog.show(PersonalInformationActivity.this, null, "正在上传图片，请稍候...");
+            new Thread(new ImageThread()).start();
         }
     }
 
@@ -275,8 +334,19 @@ public class PersonalInformationActivity extends ActionBarActivity {
 
         @Override
         public void run() {
-            File file = new File(Environment.getExternalStorageDirectory() + "/" + IMAGE_FILE_NAME);
-            UpLoadImage.uploadFile(file);
+            File file = new File(headImageUrl);
+            Message msg = handler.obtainMessage();
+            String result = SimpleClient.uploadFile(file);
+            if(null!=result){
+                if(result.equals("1")){
+                    msg.what = 3;
+                }else{
+                    msg.what = 4;
+                }
+            }else{
+                msg.what = 4;
+            }
+            handler.sendMessage(msg);
         }
     }
 

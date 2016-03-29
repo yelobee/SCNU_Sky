@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
@@ -12,7 +13,6 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,10 +26,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.Volley;
 import com.example.administrator.huashixingkong.R;
 import com.example.administrator.huashixingkong.myview.DiscussView;
-import com.example.administrator.huashixingkong.myview.RefreshLayout;
-import com.example.administrator.huashixingkong.myview.SlideListView;
+import com.example.administrator.huashixingkong.tools.BitmapCache;
 import com.example.administrator.huashixingkong.tools.HttpHelp;
 import com.example.administrator.huashixingkong.tools.JsonAnalysis;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
@@ -42,10 +44,10 @@ import java.util.HashMap;
 
 public class DiscussPageActivity extends ActionBarActivity {
 
-    private ListView ListView;
+    private static final String url = "http://110.65.86.250:8080/scnu_sky";
+
     private Button button;
     private EditText editText;
-    private TextView titleView,dateView,contentView;
     private final String []selectItem1 = {"删除"};
     private final String []selectItem2 = {"回复"};
     private String name;
@@ -53,7 +55,7 @@ public class DiscussPageActivity extends ActionBarActivity {
     private DiscussViewAdapter myAdapter;
     private PullToRefreshListView pullToRefreshListView;
     private ArrayList<HashMap<String,Object>> data = new ArrayList<>();
-    private int start = 0;
+    //private int start = 0;
     private HashMap<String, String> map; //用户输入评论
     private HashMap<String,Object> headMessage;//头部信息
 
@@ -82,9 +84,9 @@ public class DiscussPageActivity extends ActionBarActivity {
         button = (Button) findViewById(R.id.view_discuss_page_button);
         editText = (EditText) findViewById(R.id.view_discuss_page_editText);
         DiscussView discussView = new DiscussView(DiscussPageActivity.this,null);
-        titleView = (TextView) discussView.findViewById(R.id.view_discuss_name);
-        dateView = (TextView) discussView.findViewById(R.id.view_discuss_time);
-        contentView = (TextView) discussView.findViewById(R.id.view_discuss_content);
+        TextView titleView = (TextView) discussView.findViewById(R.id.view_discuss_name);
+        TextView dateView = (TextView) discussView.findViewById(R.id.view_discuss_time);
+        TextView contentView = (TextView) discussView.findViewById(R.id.view_discuss_content);
 
         titleView.setText(headMessage.get("nickname").toString());
         dateView.setText(headMessage.get("release_date").toString());
@@ -270,9 +272,12 @@ public class DiscussPageActivity extends ActionBarActivity {
     }*/
 
     private class DiscussViewAdapter extends BaseAdapter {
+        private ImageLoader mImageLoader;
         private LayoutInflater mInflater;//得到一个LayoutInfalter对象用来导入布局 /*构造函数*/
         public DiscussViewAdapter(Context context) {
             this.mInflater = LayoutInflater.from(context);
+            RequestQueue mQueue = Volley.newRequestQueue(context);
+            mImageLoader = new ImageLoader(mQueue, new BitmapCache());
         }
 
         @Override
@@ -300,29 +305,72 @@ public class DiscussPageActivity extends ActionBarActivity {
                         null);
                 holder = new ViewHolder();
                     /*得到各个控件的对象*/
+                holder.headImage = (ImageView) convertView.findViewById(R.id.head_image);
+                holder.like = (ImageView) convertView.findViewById(R.id.like_button);
                 holder.title = (TextView) convertView.findViewById(R.id.title);
-                holder.reply = (TextView) convertView.findViewById(R.id.reply);
+                holder.tag = (TextView) convertView.findViewById(R.id.tag);
                 holder.time = (TextView) convertView.findViewById(R.id.time);
                 holder.content = (TextView) convertView.findViewById(R.id.content);
+                holder.likeCount = (TextView) convertView.findViewById(R.id.like_count);
                 convertView.setTag(holder);//绑定ViewHolder对象
             }else{
                 holder = (ViewHolder)convertView.getTag();//取出ViewHolder对象
             }
             /*设置TextView显示的内容，即我们存放在动态数组中的数据*/
-            holder.title.setText(data.get(position).get("nickname").toString());
             holder.content.setText(data.get(position).get("content").toString());
             holder.time.setText(data.get(position).get("release_date").toString());
+            holder.likeCount.setText(data.get(position).get("like_count").toString());
+            String tag = data.get(position).get("tag").toString()+"楼";
+            holder.tag.setText(tag);
 
-            if(data.get(position).get("is_reply").toString().equals("1")){
-                String replyStr = "回复"+data.get(position).get("reply_tag").toString()+"楼";
-                holder.reply.setText(replyStr);
-            }else{
-                holder.reply.setText("");
+            ImageLoader.ImageListener listener = ImageLoader.getImageListener(holder.headImage, android.R.drawable.ic_menu_rotate, android.R.drawable.ic_delete);
+            String filePath = (String)data.get(position).get("head_image");
+            if(null != filePath){
+                mImageLoader.get(url + filePath, listener);
             }
 
-            convertView.setOnClickListener(new View.OnClickListener() {
+            if(data.get(position).get("is_reply").toString().equals("1")){
+                String replyStr = data.get(position).get("nickname").toString()+
+                        "回复"+data.get(position).get("reply_tag").toString()+"楼";
+                holder.title.setText(replyStr);
+            }else{
+                holder.title.setText(data.get(position).get("nickname").toString());
+            }
+            if(data.get(position).get("like_id").equals("null")){
+                holder.like.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                String result = null;
+                                try {
+                                    result = HttpHelp.SaveLike(name,"m_comment_id",(int)data.get(position).get("m_comment_id"));
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                Message msg = handler.obtainMessage();
+                                if(result!=null){
+                                    msg.what = 0;
+                                    msg.obj = result;
+                                }else{
+                                    msg.what = 1;
+                                }
+                                handler.sendMessage(msg);
+                            }
+                        }).start();
+                        v.setClickable(false);
+                    }
+                });
+            }else{
+                Drawable drawable = getResources().getDrawable(R.drawable.like);
+                holder.like.setImageDrawable(drawable);
+                holder.like.setClickable(false);
+            }
+
+            convertView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
-                public void onClick(View v) {
+                public boolean onLongClick(View v) {
                     final AlertDialog.Builder builder = new AlertDialog.Builder(DiscussPageActivity.this);
                     builder.setTitle("ddd");
                     if (data.get(position).get("username").toString().equals(name)) {
@@ -338,9 +386,9 @@ public class DiscussPageActivity extends ActionBarActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 Intent intent = new Intent();
-                                intent.putExtra("mood_id",data.get(position).get("mood_id").toString());
-                                intent.putExtra("reply_tag",data.get(position).get("tag").toString());
-                                intent.putExtra("tag",data.get(0).get("tag").toString());
+                                intent.putExtra("mood_id", data.get(position).get("mood_id").toString());
+                                intent.putExtra("reply_tag", data.get(position).get("tag").toString());
+                                intent.putExtra("tag", data.get(0).get("tag").toString());
                                 intent.setClass(DiscussPageActivity.this, ReplyActivity.class);
                                 startActivity(intent);
                                 dialog.dismiss();
@@ -349,15 +397,20 @@ public class DiscussPageActivity extends ActionBarActivity {
                     }
 
                     builder.create().show();
+                    return false;
                 }
             });
             return convertView;
         }
     }
     public final class ViewHolder{
+        public ImageView headImage;
+        public ImageView like;
         public TextView title;
-        public TextView reply;
+        public TextView tag;
         public TextView time;
         public TextView content;
+        public TextView likeCount;
     }
+
 }
