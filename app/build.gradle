@@ -17,6 +17,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    sourceSets{
+        main{
+            jniLibs.srcDirs=['libs']
+        }
+    }
 }
 
 dependencies {
@@ -25,4 +30,5 @@ dependencies {
     compile project(':PullToRefresh')
     compile files('libs/mAppWidget-1.4.2.jar')
     compile project(':volley')
+    compile files('libs/BaiduLBS_Android.jar')
 }

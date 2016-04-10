@@ -7,19 +7,17 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 
 
 import com.example.administrator.huashixingkong.R;
-import com.example.administrator.huashixingkong.activity.MainActivity;
 import com.example.administrator.huashixingkong.model.MapObjectContainer;
 import com.example.administrator.huashixingkong.model.MapObjectModel;
 import com.example.administrator.huashixingkong.popup.TextPopup;
@@ -34,6 +32,8 @@ import com.ls.widgets.map.interfaces.Layer;
 import com.ls.widgets.map.interfaces.MapEventsListener;
 import com.ls.widgets.map.interfaces.OnMapScrollListener;
 import com.ls.widgets.map.interfaces.OnMapTouchListener;
+import com.ls.widgets.map.location.PositionMarker;
+import com.ls.widgets.map.model.MapLayer;
 import com.ls.widgets.map.model.MapObject;
 import com.ls.widgets.map.utils.PivotFactory;
 import com.ls.widgets.map.utils.PivotFactory.PivotPosition;
@@ -41,9 +41,18 @@ import android.view.View.OnTouchListener;
 import android.widget.RelativeLayout;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import android.os.Handler;
+
+import com.baidu.location.BDLocation;
+import com.baidu.location.BDLocationListener;
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
+import com.baidu.location.LocationClientOption.LocationMode;
 
 
-public class FragmentPage extends Fragment implements OnMapTouchListener, MapEventsListener {
+public class FragmentPage extends Fragment implements OnMapTouchListener, MapEventsListener, BDLocationListener {
 
     private View view;
 
@@ -61,14 +70,29 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
 
     private MapWidget map=null;
     private MapObject my_position=null;
+    private PositionMarker myPosition=null;
 
     private TextPopup mapObjectInfoPopup;
     private MapObjectContainer model;
+
+    //baiduSDK
+    private static final String POSITION_LAT="position_lat";
+    private static final String POSITION_LONG="position_long";
+    private static final String POSITION_RADIUS="position_radius";
+    private LocationClient mLocationClient=null;
+    private static final int SCAN_SPAN=5000;
+
+    private Handler mHandler=null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_fragment_page,container,false);
 
+        //baiduSDK
+        mLocationClient=new LocationClient(getActivity().getApplicationContext());
+        mLocationClient.registerLocationListener(this);
+
+        //mAppWidget
         nextObjectId = 0;
 
         model = new MapObjectContainer();
@@ -77,43 +101,68 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
         initModel();
         initMapObjects();
         initMapListeners();
-//        initLocationManager();
+
+
+        //init baiduSDK
+        initLocation();
+
+        //start LocationClient
+        mLocationClient.start();
+
+        mHandler=new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                if (msg.what==1) {
+                    myPosition.setAccuracy(msg.getData().getFloat(POSITION_RADIUS));
+
+                    Layer layer=map.getLayerById(LAYER2_ID);
+                    layer.setVisible(true);
+
+                    //Log.i(TAG,""+msg.getData().getDouble(POSITION_LAT)+" "+msg.getData().getDouble(POSITION_LONG)+" "+msg.getData().getFloat(POSITION_RADIUS));
+                    Location temp=new Location("test");
+                    temp.setLatitude(msg.getData().getDouble(POSITION_LAT));
+                    temp.setLongitude(msg.getData().getDouble(POSITION_LONG));
+
+                    myPosition.moveTo(temp);
+                }
+            }
+        };
+
 
         // Will show the position of the user on a map.
         // Do not forget to enable ACCESS_FINE_LOCATION and ACCESS_COARSE_LOCATION permission int the manifest.
 
         // Uncomment this if you are at Filitheyo island :)
-        map.setShowMyPosition(true);
 
         map.centerMap();
 
         return view;
     }
 
-//    @Override
-//    public void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//
-//        nextObjectId = 0;
-//
-//        model = new MapObjectContainer();
-//
-//        initMap(savedInstanceState);
-//        initModel();
-//        initMapObjects();
-//        initMapListeners();
-////        initLocationManager();
-//
-//        // Will show the position of the user on a map.
-//        // Do not forget to enable ACCESS_FINE_LOCATION and ACCESS_COARSE_LOCATION permission int the manifest.
-//
-//        // Uncomment this if you are at Filitheyo island :)
-//        map.setShowMyPosition(true);
-//
-//        map.centerMap();
-//
-//
-//    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+
+    @Override
+    public void onStop() {
+        super.onStop();
+    }
+
+    //baiduSDK
+    private void initLocation(){
+        LocationClientOption option=new LocationClientOption();
+        option.setLocationMode(LocationMode.Hight_Accuracy);
+        option.setCoorType("bd09ll");
+        option.setOpenGps(true);
+        option.setScanSpan(SCAN_SPAN);
+
+        mLocationClient.setLocOption(option);
+    }
+
 
     private void initMap(Bundle savedInstanceState){
         // In order to display the map on the screen you will need
@@ -137,16 +186,16 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
 
         // Configuration of position marker
         MapGraphicsConfig graphicsConfig = config.getGraphicsConfig();
-        graphicsConfig.setAccuracyAreaColor(0x550000FF); // Blue with transparency
-        graphicsConfig.setAccuracyAreaBorderColor(Color.BLUE); // Blue without transparency
+        graphicsConfig.setAccuracyAreaColor(0x55FF0000); //Transparent Red
+        graphicsConfig.setAccuracyAreaBorderColor(Color.RED);
+        graphicsConfig.setDotPointerDrawableId(R.drawable.round_pointer);
+        graphicsConfig.setArrowPointerDrawableId(R.drawable.arrow_pointer);
 
          RelativeLayout layout=(RelativeLayout) view.findViewById(R.id.rootLayout);
         // Adding the map to the layout
         layout.addView(map, 0);
         layout.setBackgroundColor(Color.parseColor("#EEF7F5"));
 
-        //show user's position
-        map.setShowMyPosition(true);
 
         // Adding layers in order to put there some map objects
         map.createLayer(LAYER1_ID); // you will need layer id's in order to access particular layer
@@ -165,29 +214,32 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
         mapObjectInfoPopup =new TextPopup(this.getActivity(), (RelativeLayout)view.findViewById(R.id.rootLayout));
 
         Layer layer1=map.getLayerById(LAYER1_ID);
-        Layer layer2=map.getLayerById(LAYER2_ID);
+        MapLayer layer2=(MapLayer)map.getLayerById(LAYER2_ID);
 
         for (int i=0; i<model.size(); ++i) {
             addNotScalableMapObject(model.getObject(i), layer1);
         }
-        addMapPositionObject(position_id, layer2);
+        addMapPositionObject(layer2);
         layer2.setVisible(false);
 
     }
 
 
-    private void addMapPositionObject(int positionObject_ID,Layer layer){
+    private void addMapPositionObject(MapLayer layer){
         // Getting the drawable of the map object
-        Drawable drawable = getResources().getDrawable(R.drawable.maps_blue_dot);
+        Drawable drawable = getResources().getDrawable(R.drawable.round_pointer);
         // Creating the map object
-        my_position = new MapObject(positionObject_ID, // id, will be passed to the listener when user clicks on it
-                drawable,
-                new Point(0, 0), // coordinates in original map coordinate system.
-                // Pivot point of center of the drawable in the drawable's coordinate system.
-                PivotFactory.createPivotPoint(drawable, PivotPosition.PIVOT_CENTER),
-                true, // This object will be passed to the listener
-                true); // is not scalable. It will have the same size on each zoom level
-        layer.addMapObject(my_position);
+
+        //设置范围
+        MapGraphicsConfig graphics=map.getConfig().getGraphicsConfig();
+
+        Drawable dot=this.getResources().getDrawable(graphics.getDotPointerDrawableId());
+        Drawable arrow=this.getResources().getDrawable(graphics.getArrowPointerDrawableId());
+
+        myPosition=new PositionMarker(map, position_id, dot, arrow);
+        myPosition.setColor(graphics.getAccuracyAreaColor(), graphics.getAccuracyAreaBorderColor());
+
+        layer.addMapObject(myPosition);
 
     }
 
@@ -397,5 +449,26 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
     @Override
     public void onPostZoomOut() {
         Log.i(TAG, "onPostZoomOut()");
+    }
+
+    @Override
+    public void onReceiveLocation(BDLocation location) {
+        //Receive Location
+
+        if (location.getLocType() == BDLocation.TypeServerError||location.getLocType() ==BDLocation.TypeNetWorkException||location.getLocType() == BDLocation.TypeCriteriaException) {
+            Log.i("BaiduLocationApiDem", "定位失败");
+        }else {
+            Message msg=new Message();
+            msg.what=1;
+
+            Bundle bundle=new Bundle();
+            bundle.putDouble(POSITION_LAT, location.getLatitude());
+            bundle.putDouble(POSITION_LONG, location.getLongitude());
+            bundle.putFloat(POSITION_RADIUS, location.getRadius());
+            msg.setData(bundle);
+
+            //更新用户位置
+            mHandler.sendMessage(msg);
+        }
     }
 }
