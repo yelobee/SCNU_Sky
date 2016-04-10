@@ -6,9 +6,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.v4.app.Fragment;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,14 +16,12 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 import com.example.administrator.huashixingkong.R;
 import com.example.administrator.huashixingkong.activity.DiscussPageActivity;
-import com.example.administrator.huashixingkong.myview.RefreshLayout;
 import com.example.administrator.huashixingkong.tools.BitmapCache;
 import com.example.administrator.huashixingkong.tools.HttpHelp;
 import com.example.administrator.huashixingkong.tools.JsonAnalysis;
@@ -47,12 +43,12 @@ public class CommentFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
+    public static final int DISCUSS_PAGE_ACTIVITY_RESULT = 0xa4;
+
     private static final String url = "http://110.65.86.250:8080/scnu_sky";
 
-    private ListView listView;
-    private RefreshLayout myRefreshListView;
     private ArrayList<HashMap<String,Object>> data = new ArrayList<>();
-    private int start = 0;
+    //private int start = 0;
     private String name = null;
     private PullToRefreshListView pullToRefreshListView;
     private DiscussViewAdapter myAdapter;
@@ -70,10 +66,10 @@ public class CommentFragment extends Fragment {
     // TODO: Rename and change types and number of parameters
     public static CommentFragment newInstance(String param1, String param2) {
         CommentFragment fragment = new CommentFragment();
-        Bundle args = new Bundle();
+        /*Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
+        fragment.setArguments(args);*/
         return fragment;
     }
 
@@ -105,59 +101,6 @@ public class CommentFragment extends Fragment {
         if (parent != null) {
             parent.removeView(view);
         }
-
-        /*listView = (ListView) view.findViewById(R.id.fragment_comment_list);
-        myRefreshListView = (RefreshLayout) view.findViewById(R.id.swipe_layout);
-
-        myAdapter = new DiscussViewAdapter(getActivity());
-
-        myRefreshListView.setColorSchemeColors(android.R.color.black, android.R.color.white,
-                android.R.color.holo_blue_bright, android.R.color.holo_red_dark);
-
-        myRefreshListView.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                //Toast.makeText(getActivity(), "refresh", Toast.LENGTH_SHORT).show();
-                myRefreshListView.postDelayed(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        myRefreshListView.setRefreshing(false);
-                        Thread discussThread = new Thread(new DiscussThread());
-                        discussThread.start();
-                    }
-                }, 1000);
-            }
-        });
-
-
-        myRefreshListView.setOnLoadListener(new RefreshLayout.OnLoadListener() {
-            @Override
-            public void onLoad() {
-                //Toast.makeText(getActivity(), "load", Toast.LENGTH_SHORT).show();
-
-                myRefreshListView.postDelayed(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        myRefreshListView.setLoading(false);
-                    }
-                }, 1500);
-
-            }
-
-        });
-
-        listView.setAdapter(myAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                Intent intent = new Intent();
-                intent.setClass(getActivity(), DiscussPageActivity.class);
-                startActivity(intent);
-            }
-        });*/
         return view;
     }
 
@@ -197,12 +140,47 @@ public class CommentFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent();
                 Bundle bundle = new Bundle();
+                bundle.putInt("position",position - 1);
                 bundle.putSerializable("mood",data.get(position-1));
                 intent.putExtras(bundle);
                 intent.setClass(getActivity(), DiscussPageActivity.class);
-                startActivity(intent);
+                getRootFragment().startActivityForResult(intent, DISCUSS_PAGE_ACTIVITY_RESULT);
             }
         });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode==DISCUSS_PAGE_ACTIVITY_RESULT){
+            if(resultCode== DiscussPageActivity.DISCUSS_PAGE_ACTIVITY_RESULT_LIKE){
+                int position = getActivity().getIntent().getIntExtra("position",0);
+                int i;
+                HashMap<String,Object> Mp = this.data.get(position);
+                i = (int)Mp.get("like_count");
+                Mp.remove("like_count");
+                Mp.remove("like_id");
+                Mp.put("like_count", i + 1);
+                Mp.put("like_id", 1);
+                this.data.remove(position);
+                this.data.add(position, Mp);
+                myAdapter.notifyDataSetChanged();
+            }
+        }
+    }
+
+    /**
+     * 得到根Fragment
+     *
+     * @return
+     */
+    private Fragment getRootFragment() {
+        Fragment fragment = getParentFragment();
+        while (fragment.getParentFragment() != null) {
+            fragment = fragment.getParentFragment();
+        }
+        return fragment;
+
     }
 
     private class GetDataTask extends AsyncTask<Void, Void, ArrayList<HashMap<String,Object>>> {
@@ -211,7 +189,7 @@ public class CommentFragment extends Fragment {
         protected ArrayList<HashMap<String,Object>> doInBackground(Void... params) {
             String str;
             try {
-                str = HttpHelp.SaveComment(String.valueOf(start), name);
+                str = HttpHelp.SaveComment(name);
                 if(str!=null) {
                     data = JsonAnalysis.MoodAnalysis(str);
                     Log.d("abc", data.toString());
@@ -239,51 +217,6 @@ public class CommentFragment extends Fragment {
         }
     }
 
-   /* Handler handler = new Handler(){
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what){
-                case 0:
-                    Toast.makeText(getActivity().getApplicationContext(), "成功！", Toast.LENGTH_SHORT).show();
-                    //data = (ArrayList<HashMap<String, Object>>) msg.obj;
-                    break;
-                case 1:
-                    Toast.makeText(getActivity().getApplicationContext(), "错误", Toast.LENGTH_SHORT).show();
-
-                    break;
-            }
-        }
-    };
-
-    class DiscussThread implements Runnable{
-
-        @Override
-        public void run() {
-            JsonAnalysis CommentJson = new JsonAnalysis();
-            String str;
-            try {
-                str = HttpHelp.SaveComment(String.valueOf(start), name);
-                if(str!=null) {
-                    data = CommentJson.CommentAnalysis(str);
-                    Log.d("abc", data.toString());
-                    Message msg = handler.obtainMessage();
-                    if (!data.isEmpty()) {
-                        Log.d("abc", "ok");
-                        msg.what = 0;
-                        msg.obj = data;
-                        handler.sendMessage(msg);
-                    } else {
-                        Log.d("abc", "error");
-                        msg.what = 1;
-                        handler.sendMessage(msg);
-                    }
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-*/
     private ArrayList<HashMap<String,Object>> getDate(){
         ArrayList<HashMap<String, Object>> listItem = new ArrayList<>();
         for (int i=0;i<4;i++){

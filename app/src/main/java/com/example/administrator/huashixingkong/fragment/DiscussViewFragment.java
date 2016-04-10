@@ -1,8 +1,10 @@
 package com.example.administrator.huashixingkong.fragment;
 
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -39,11 +41,11 @@ import java.util.HashMap;
 
 public class DiscussViewFragment extends Fragment {
 
-    private ListView listView;
-    private RefreshLayout myRefreshListView;
+    public final static int ACT_ACTIVITY_RESULT = 0xa0;
+
+    private String name;
     private ArrayList<HashMap<String,Object>> data = new ArrayList<>();
     private ArrayList<HashMap<String,Object>> list = new ArrayList<>();
-    private int start = 0;
     private PullToRefreshListView pullToRefreshListView;
     private DiscussViewAdapter myAdapter;
     private View view;
@@ -124,6 +126,8 @@ public class DiscussViewFragment extends Fragment {
     }
 
     private void initView(View view){
+        SharedPreferences preferences = getActivity().getSharedPreferences("userData", 0);
+        name =  preferences.getString("username", "");
         pullToRefreshListView = (PullToRefreshListView) view.findViewById(R.id.fragment_discuss_list);
         new Handler().postDelayed(new Runnable() {
 
@@ -147,7 +151,7 @@ public class DiscussViewFragment extends Fragment {
             @Override
             public void onPullDownToRefresh(PullToRefreshBase<ListView> refreshView) {
                 // 下拉刷新触发的事件
-                Log.d("abcd","autorefresh");
+                Log.d("abcd", "autorefresh");
                 //pullToRefreshListView.onRefreshComplete();
                 new GetDataTask().execute();
             }
@@ -163,13 +167,49 @@ public class DiscussViewFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent();
                 Bundle bundle = new Bundle();
-                bundle.putSerializable("activity",data.get(position-1));
+                bundle.putInt("position",position - 1);
+                bundle.putSerializable("activity", data.get(position - 1));
                 intent.putExtras(bundle);
                 intent.setClass(getActivity(), ActActivity.class);
-                startActivity(intent);
+                getRootFragment().startActivityForResult(intent, ACT_ACTIVITY_RESULT);
             }
         });
     }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode==ACT_ACTIVITY_RESULT){
+            if(resultCode==ActActivity.ACT_ACTIVITY_RESULT_LIKE){
+                int position = getActivity().getIntent().getIntExtra("position",0);
+                int i;
+                HashMap<String,Object> Mp = this.data.get(position);
+                i = (int)Mp.get("like_count");
+                Mp.remove("like_count");
+                Mp.remove("like_id");
+                Mp.put("like_count", i + 1);
+                Mp.put("like_id", 1);
+                this.data.remove(position);
+                this.data.add(position, Mp);
+                myAdapter.notifyDataSetChanged();
+            }
+        }
+    }
+
+    /**
+     * 得到根Fragment
+     *
+     * @return
+     */
+    private Fragment getRootFragment() {
+        Fragment fragment = getParentFragment();
+        while (fragment.getParentFragment() != null) {
+            fragment = fragment.getParentFragment();
+        }
+        return fragment;
+
+    }
+
 
     private class GetDataTask extends AsyncTask<Void, Void, ArrayList<HashMap<String,Object>>> {
 
@@ -178,7 +218,7 @@ public class DiscussViewFragment extends Fragment {
             JsonAnalysis ActivityJson = new JsonAnalysis();
             String str;
             try {
-                str = HttpHelp.SaveActivity(String.valueOf(start));
+                str = HttpHelp.SaveActivity(String.valueOf(name));
                 if(str!=null) {
                     data = ActivityJson.ActivityAnalysis(str);
                     Log.d("abc", data.toString());

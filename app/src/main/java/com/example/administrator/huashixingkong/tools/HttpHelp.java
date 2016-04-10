@@ -19,10 +19,10 @@ public class HttpHelp {
         return null;
     }*/
 
-    public static String SaveActivity(String start){
+    public static String SaveActivity(String username){
         String path = "http://110.65.86.250:8080/scnu_sky/ActivityServlet";
         Map<String, String> student = new HashMap<>();
-        student.put("start", start);
+        student.put("username", username);
         try {
             return SimpleClient.SendPostRequest(path, student, "UTF-8");
         } catch (Exception e) {
@@ -32,10 +32,9 @@ public class HttpHelp {
         return null;
     }
 
-    public static String SaveComment(String start,String username){
+    public static String SaveComment(String username){
         String path = "http://110.65.86.250:8080/scnu_sky/CommentServlet";
         Map<String, String> student = new HashMap<>();
-        student.put("start", start);
         student.put("name", username);
         try {
             return SimpleClient.SendPostRequest(path, student, "UTF-8");

@@ -39,7 +39,6 @@ public class MyFragment extends Fragment {
     private String IMAGE_FILE_NAME;
     private static final String IMAGE_PATH = Environment.getExternalStorageDirectory().getPath() + "/SCNU_SKY/";
     private ListView listView;
-    private TextView textView;
     private ImageView imageView;
     private LinearLayout linearLayout;
     private String []title = {"设置","关于软件","退出登录"};
@@ -62,6 +61,12 @@ public class MyFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        setHeadImage();
+    }
+
     private void setHeadImage(){
         File mFile = new File(IMAGE_PATH,IMAGE_FILE_NAME);
         //若该文件存在
@@ -72,7 +77,7 @@ public class MyFragment extends Fragment {
     }
 
     private void initView(View view){
-        textView = (TextView) view.findViewById(R.id.fragment_my_title);
+        TextView textView = (TextView) view.findViewById(R.id.fragment_my_title);
         imageView = (ImageView) view.findViewById(R.id.fragment_my_image);
         listView = (ListView) view.findViewById(R.id.fragment_my_list);
         linearLayout = (LinearLayout)view.findViewById(R.id.fragment_my_personal_information);
@@ -101,7 +106,7 @@ public class MyFragment extends Fragment {
                 if (position == 0) {
                     Intent intent = new Intent();
                     intent.setClass(getActivity(), SettingActivity.class);
-                    startActivityForResult(intent,REQUEST_CODE_CUTTING);
+                    startActivityForResult(intent, REQUEST_CODE_CUTTING);
                 }
                 if (position == 2) {
                     Intent intent = new Intent();
@@ -111,14 +116,6 @@ public class MyFragment extends Fragment {
                 }
             }
         });
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(resultCode==REQUEST_CODE_CUTTING){
-            setHeadImage();
-        }
-        super.onActivityResult(requestCode, resultCode, data);
     }
 
     private ArrayList<HashMap<String,Object>> getDate(){

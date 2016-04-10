@@ -323,7 +323,6 @@ public class PersonalInformationActivity extends ActionBarActivity {
             Drawable drawable = new BitmapDrawable(null, photo);
             headImageUrl = saveBitmap(IMAGE_FILE_NAME,photo);
             headImage.setImageDrawable(drawable);
-            setResult(REQUEST_CODE_CUTTING);
             // 新线程后台上传服务端
             pd = ProgressDialog.show(PersonalInformationActivity.this, null, "正在上传图片，请稍候...");
             new Thread(new ImageThread()).start();

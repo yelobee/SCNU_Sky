@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -20,13 +21,15 @@ import java.util.HashMap;
 public class ReplyActivity extends ActionBarActivity {
 
     private EditText editText;
+    private String tag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reply);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
+        Intent intent = getIntent();
+        tag = intent.getStringExtra("select");
         initView();
     }
 
@@ -76,7 +79,12 @@ public class ReplyActivity extends ActionBarActivity {
         SharedPreferences preferences = getSharedPreferences("userData", 0);
         HashMap<String,String> map = new HashMap<>();
         map.put("username", preferences.getString("username", ""));
-        map.put("mood_id", intent.getStringExtra("mood_id"));
+        if (tag.equals("mood_id")){
+            map.put("mood_id", intent.getStringExtra("mood_id"));
+        }
+        if (tag.equals("activity_id")){
+            map.put("activity_id", intent.getStringExtra("mood_id"));
+        }
         map.put("content", editText.getText().toString().trim());
         map.put("is_reply", String.valueOf(true));
         map.put("reply_tag", intent.getStringExtra("reply_tag"));
@@ -91,7 +99,11 @@ public class ReplyActivity extends ActionBarActivity {
         public void run() {
             String result = null;
             try {
-                result = HttpHelp.SaveMComment(setMComment());
+                if (tag.equals("mood_id")){
+                    result = HttpHelp.SaveMComment(setMComment());
+                }else{
+                    result = HttpHelp.SaveAComment(setMComment());
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }

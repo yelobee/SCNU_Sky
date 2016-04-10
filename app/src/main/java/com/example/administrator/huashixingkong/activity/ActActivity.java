@@ -30,6 +30,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 import com.example.administrator.huashixingkong.R;
+import com.example.administrator.huashixingkong.fragment.DiscussViewFragment;
 import com.example.administrator.huashixingkong.tools.BitmapCache;
 import com.example.administrator.huashixingkong.tools.DeleteThread;
 import com.example.administrator.huashixingkong.tools.HttpHelp;
@@ -45,9 +46,12 @@ import java.util.HashMap;
 public class ActActivity extends ActionBarActivity {
 
     private static final String url = "http://110.65.86.250:8080/scnu_sky";
+    public static final int ACT_ACTIVITY_RESULT_LIKE = 0xa2;
 
     private Button button;
     private EditText editText;
+    private ImageView likeImage;
+    private TextView likeCount;
     private final String []selectItem1 = {"删除"};
     private final String []selectItem2 = {"回复"};
     private String name;
@@ -72,6 +76,17 @@ public class ActActivity extends ActionBarActivity {
     }
 
     @Override
+    protected void onRestart() {
+        super.onRestart();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                pullToRefreshListView.setRefreshing();
+            }
+        }, 100);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -81,8 +96,7 @@ public class ActActivity extends ActionBarActivity {
         //noinspection SimplifiableIfStatement
 
         if (id == android.R.id.home){
-            this.finish();
-            return true;
+            finish();
         }
 
         return super.onOptionsItemSelected(item);
@@ -95,10 +109,42 @@ public class ActActivity extends ActionBarActivity {
         TextView titleView = (TextView) findViewById(R.id.title);
         TextView dateView = (TextView) findViewById(R.id.date);
         TextView contentView = (TextView) findViewById(R.id.content);
+        likeCount = (TextView) findViewById(R.id.like_count);
+        likeImage = (ImageView) findViewById(R.id.like_button);
 
         titleView.setText(headMessage.get("title").toString());
-        dateView.setText(headMessage.get("begin_time").toString() + "~" + headMessage.get("end_time").toString());
+        String time = headMessage.get("begin_time").toString() + "~" + headMessage.get("end_time").toString();
+        dateView.setText(time);
         contentView.setText(headMessage.get("content").toString());
+        likeCount.setText(headMessage.get("like_count").toString());
+        if (headMessage.get("like_id").equals("null")){
+            likeImage.setImageDrawable(getResources().getDrawable(R.drawable.like_default));
+            likeImage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            String result = null;
+                            try {
+                                result = HttpHelp.SaveLike(name,"activity_id",(int)headMessage.get("activity_id"));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            Message msg = handler.obtainMessage();
+                            if(result!=null){
+                                msg.what = 3;
+                            }else{
+                                msg.what = 1;
+                            }
+                            handler.sendMessage(msg);
+                        }
+                    }).start();
+                }
+            });
+        }else {
+            likeImage.setImageDrawable(getResources().getDrawable(R.drawable.like));
+        }
 
         myAdapter = new DiscussViewAdapter(this);
         pullToRefreshListView.setAdapter(myAdapter);
@@ -126,6 +172,7 @@ public class ActActivity extends ActionBarActivity {
             public void onPullUpToRefresh(PullToRefreshBase<ListView> refreshView) {
                 // 上提加载触发的事件
                 //new GetDataTask().execute();
+                pullToRefreshListView.onRefreshComplete();
             }
         });
         pullToRefreshListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -179,6 +226,16 @@ public class ActActivity extends ActionBarActivity {
                 case 1:
                     Toast.makeText(getApplicationContext(), "错误", Toast.LENGTH_SHORT).show();
 
+                    break;
+                case 2:
+                    new GetDataTask().execute();
+                    break;
+                case 3:
+                    likeImage.setImageDrawable(getResources().getDrawable(R.drawable.like));
+                    likeCount.setText(String.valueOf((int) headMessage.get("like_count") + 1));
+                    Intent intent = new Intent();
+                    intent.putExtra("position", getIntent().getExtras().getInt("position"));
+                    setResult(ACT_ACTIVITY_RESULT_LIKE,intent);
                     break;
             }
             editText.getText().clear();
@@ -313,6 +370,9 @@ public class ActActivity extends ActionBarActivity {
             }
 
             if(data.get(position).get("like_id").equals("null")){
+                Drawable drawable = getResources().getDrawable(R.drawable.like_default);
+                holder.like.setImageDrawable(drawable);
+                holder.like.setClickable(false);
                 holder.like.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -327,8 +387,7 @@ public class ActActivity extends ActionBarActivity {
                                 }
                                 Message msg = handler.obtainMessage();
                                 if(result!=null){
-                                    msg.what = 0;
-                                    msg.obj = result;
+                                    msg.what = 2;
                                 }else{
                                     msg.what = 1;
                                 }
@@ -348,7 +407,7 @@ public class ActActivity extends ActionBarActivity {
                 @Override
                 public boolean onLongClick(View v) {
                     final AlertDialog.Builder builder = new AlertDialog.Builder(ActActivity.this);
-                    builder.setTitle("ddd");
+                    builder.setTitle("选项");
                     if (data.get(position).get("username").toString().equals(name)) {
                         builder.setItems(selectItem1, new DialogInterface.OnClickListener() {
                             @Override
@@ -364,9 +423,10 @@ public class ActActivity extends ActionBarActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 Intent intent = new Intent();
-                                intent.putExtra("mood_id", data.get(position).get("mood_id").toString());
+                                intent.putExtra("mood_id", data.get(position).get("activity_id").toString());
                                 intent.putExtra("reply_tag", data.get(position).get("tag").toString());
                                 intent.putExtra("tag", data.get(0).get("tag").toString());
+                                intent.putExtra("select","activity_id");
                                 intent.setClass(ActActivity.this, ReplyActivity.class);
                                 startActivity(intent);
                                 dialog.dismiss();
