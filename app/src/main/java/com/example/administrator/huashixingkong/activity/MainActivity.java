@@ -1,8 +1,10 @@
 package com.example.administrator.huashixingkong.activity;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTabHost;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
@@ -20,7 +22,7 @@ import com.example.administrator.huashixingkong.fragment.FragmentPage;
 import com.example.administrator.huashixingkong.fragment.MyFragment;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends BaseFragmentActivity {
 
 
     //定义FragmentTabHost对象
@@ -102,5 +104,10 @@ public class MainActivity extends ActionBarActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }

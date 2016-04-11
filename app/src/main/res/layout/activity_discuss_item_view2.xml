@@ -65,7 +65,6 @@
             android:layout_height="20dp"
             android:layout_marginRight="5dp"
             android:adjustViewBounds="true"
-            android:src="@drawable/like_default"
             android:background="@drawable/like_background"
             />
         <TextView

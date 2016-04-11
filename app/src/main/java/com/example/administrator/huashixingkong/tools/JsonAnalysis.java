@@ -52,6 +52,8 @@ public class JsonAnalysis {
             map.put("begin_time", jsonObject.getString("begin_time"));
             map.put("end_time", jsonObject.getString("end_time"));
             map.put("release_date", jsonObject.getString("release_date"));
+            map.put("like_count",jsonObject.getInt("like_count"));
+            map.put("like_id",jsonObject.getString("like_id"));
             list.add(map);
         }
         //Log.d("abc",list.toString());
@@ -105,6 +107,7 @@ public class JsonAnalysis {
             map.put("release_date", jsonObject.getString("release_date"));
             map.put("like_count", jsonObject.getInt("like_count"));
             map.put("head_image",jsonObject.getString("head_image"));
+            map.put("like_id",jsonObject.getString("like_id"));
             list.add(map);
         }
         //Log.d("abc",list.toString());

@@ -6,11 +6,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -30,8 +32,11 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 import com.example.administrator.huashixingkong.R;
+import com.example.administrator.huashixingkong.fragment.CommentFragment;
+import com.example.administrator.huashixingkong.fragment.DiscussViewFragment;
 import com.example.administrator.huashixingkong.myview.DiscussView;
 import com.example.administrator.huashixingkong.tools.BitmapCache;
+import com.example.administrator.huashixingkong.tools.DeleteThread;
 import com.example.administrator.huashixingkong.tools.HttpHelp;
 import com.example.administrator.huashixingkong.tools.JsonAnalysis;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
@@ -45,9 +50,12 @@ import java.util.HashMap;
 public class DiscussPageActivity extends ActionBarActivity {
 
     private static final String url = "http://110.65.86.250:8080/scnu_sky";
+    public static final int DISCUSS_PAGE_ACTIVITY_RESULT_LIKE=0xa3;
 
     private Button button;
     private EditText editText;
+    private TextView likeCount;
+    private ImageView likeImage;
     private final String []selectItem1 = {"删除"};
     private final String []selectItem2 = {"回复"};
     private String name;
@@ -58,6 +66,7 @@ public class DiscussPageActivity extends ActionBarActivity {
     //private int start = 0;
     private HashMap<String, String> map; //用户输入评论
     private HashMap<String,Object> headMessage;//头部信息
+    private ImageLoader mImageLoader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +89,17 @@ public class DiscussPageActivity extends ActionBarActivity {
 
     }
 
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                pullToRefreshListView.setRefreshing();
+            }
+        }, 100);
+    }
+
     private void initView(){
         button = (Button) findViewById(R.id.view_discuss_page_button);
         editText = (EditText) findViewById(R.id.view_discuss_page_editText);
@@ -87,10 +107,51 @@ public class DiscussPageActivity extends ActionBarActivity {
         TextView titleView = (TextView) discussView.findViewById(R.id.view_discuss_name);
         TextView dateView = (TextView) discussView.findViewById(R.id.view_discuss_time);
         TextView contentView = (TextView) discussView.findViewById(R.id.view_discuss_content);
+        likeCount = (TextView) discussView.findViewById(R.id.view_like_count);
+        likeImage = (ImageView) discussView.findViewById(R.id.view_like_button);
+        ImageView imageView = (ImageView) discussView.findViewById(R.id.view_discuss_image);
 
         titleView.setText(headMessage.get("nickname").toString());
         dateView.setText(headMessage.get("release_date").toString());
         contentView.setText(headMessage.get("content").toString());
+        likeCount.setText(headMessage.get("like_count").toString());
+        if (headMessage.get("like_id").equals("null")){
+            likeImage.setImageDrawable(getResources().getDrawable(R.drawable.like_default));
+            likeImage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            String result = null;
+                            try {
+                                result = HttpHelp.SaveLike(name, "mood_id", (int) headMessage.get("mood_id"));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            Message msg = handler.obtainMessage();
+                            if (result != null) {
+                                msg.what = 3;
+                            } else {
+                                msg.what = 1;
+                            }
+                            handler.sendMessage(msg);
+                        }
+                    }).start();
+                }
+            });
+        }else {
+            likeImage.setImageDrawable(getResources().getDrawable(R.drawable.like));
+        }
+
+        RequestQueue mQueue = Volley.newRequestQueue(this);
+        mImageLoader = new ImageLoader(mQueue, new BitmapCache());
+
+        ImageLoader.ImageListener listener = ImageLoader.getImageListener(imageView, android.R.drawable.ic_menu_rotate, android.R.drawable.ic_delete);
+        String filePath = (String) headMessage.get("head_image");
+        if(null != filePath){
+            mImageLoader.get(url + filePath, listener);
+        }
 
         pullToRefreshListView = (PullToRefreshListView) findViewById(R.id.view_discuss_page_list);
         myAdapter = new DiscussViewAdapter(this);
@@ -121,6 +182,7 @@ public class DiscussPageActivity extends ActionBarActivity {
             public void onPullUpToRefresh(PullToRefreshBase<ListView> refreshView) {
                 // 上提加载触发的事件
                 //new GetDataTask().execute();
+                pullToRefreshListView.onRefreshComplete();
             }
         });
         pullToRefreshListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -174,6 +236,15 @@ public class DiscussPageActivity extends ActionBarActivity {
                 case 1:
                     Toast.makeText(getApplicationContext(), "错误", Toast.LENGTH_SHORT).show();
 
+                    break;
+                case 2:
+                    new GetDataTask().execute();
+                case 3:
+                    likeImage.setImageDrawable(getResources().getDrawable(R.drawable.like));
+                    likeCount.setText(String.valueOf((int)headMessage.get("like_count")+1));
+                    Intent intent = new Intent();
+                    intent.putExtra("position", getIntent().getExtras().getInt("position"));
+                    setResult(DISCUSS_PAGE_ACTIVITY_RESULT_LIKE,intent);
                     break;
             }
             editText.getText().clear();
@@ -255,8 +326,7 @@ public class DiscussPageActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == android.R.id.home){
-            this.finish();
-            return true;
+            finish();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -337,6 +407,9 @@ public class DiscussPageActivity extends ActionBarActivity {
                 holder.title.setText(data.get(position).get("nickname").toString());
             }
             if(data.get(position).get("like_id").equals("null")){
+                Drawable drawable = getResources().getDrawable(R.drawable.like_default);
+                holder.like.setImageDrawable(drawable);
+                holder.like.setClickable(false);
                 holder.like.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -351,8 +424,7 @@ public class DiscussPageActivity extends ActionBarActivity {
                                 }
                                 Message msg = handler.obtainMessage();
                                 if(result!=null){
-                                    msg.what = 0;
-                                    msg.obj = result;
+                                    msg.what = 2;
                                 }else{
                                     msg.what = 1;
                                 }
@@ -377,7 +449,9 @@ public class DiscussPageActivity extends ActionBarActivity {
                         builder.setItems(selectItem1, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-
+                                Thread thread = new Thread(new DeleteThread(0,
+                                        (int) data.get(position).get("m_comment_id"), handler));
+                                thread.start();
                             }
                         });
 
@@ -389,6 +463,7 @@ public class DiscussPageActivity extends ActionBarActivity {
                                 intent.putExtra("mood_id", data.get(position).get("mood_id").toString());
                                 intent.putExtra("reply_tag", data.get(position).get("tag").toString());
                                 intent.putExtra("tag", data.get(0).get("tag").toString());
+                                intent.putExtra("select","mood_id");
                                 intent.setClass(DiscussPageActivity.this, ReplyActivity.class);
                                 startActivity(intent);
                                 dialog.dismiss();

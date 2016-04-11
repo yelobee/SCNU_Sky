@@ -19,4 +19,4 @@
     android:duration="@android:integer/config_longAnimTime"
     android:fromYDelta="0"
     android:toYDelta="100%p" />
-<!-- From: file:/Users/yelobee_/Desktop/WorkSpace/Source/version_1.0/huashixingkong/PullToRefresh/res/anim/slide_out_to_bottom.xml -->
+<!-- From: file:/E:/android/scnu_sky/SCNU_sky/PullToRefresh/res/anim/slide_out_to_bottom.xml -->

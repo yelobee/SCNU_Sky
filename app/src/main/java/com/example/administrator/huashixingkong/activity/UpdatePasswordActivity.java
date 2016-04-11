@@ -1,6 +1,7 @@
 package com.example.administrator.huashixingkong.activity;
 
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -14,7 +15,6 @@ import android.widget.Toast;
 
 import com.example.administrator.huashixingkong.R;
 import com.example.administrator.huashixingkong.tools.MyHttp;
-import com.example.administrator.huashixingkong.tools.RegisterHttp;
 
 public class UpdatePasswordActivity extends ActionBarActivity implements View.OnFocusChangeListener{
 
@@ -40,6 +40,10 @@ public class UpdatePasswordActivity extends ActionBarActivity implements View.On
         sharedPreferences = this.getSharedPreferences("userData",0);
         name = sharedPreferences.getString("username", "");
 
+        oldPass.setCompoundDrawables(setDrawable(R.drawable.password), null, null, null);
+        newPass.setCompoundDrawables(setDrawable(R.drawable.password), null, null, null);
+        checkPass.setCompoundDrawables(setDrawable(R.drawable.password), null, null, null);
+
         oldPass.setOnFocusChangeListener(this);
         newPass.setOnFocusChangeListener(this);
         checkPass.setOnFocusChangeListener(this);
@@ -55,6 +59,14 @@ public class UpdatePasswordActivity extends ActionBarActivity implements View.On
             }
         });
 
+    }
+
+    private Drawable setDrawable(int drawID){
+        Drawable drawable = getResources().getDrawable(drawID);
+        if (drawable != null) {
+            drawable.setBounds(20, 0, 70, 50);//第一0是距左边距离，第二0是距上边距离，40分别是长宽
+        }
+        return drawable;
     }
 
     Handler handler = new Handler(){

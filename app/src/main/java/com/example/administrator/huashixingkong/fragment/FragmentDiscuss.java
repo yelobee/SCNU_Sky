@@ -1,6 +1,7 @@
 package com.example.administrator.huashixingkong.fragment;
 
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -17,6 +18,7 @@ import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.administrator.huashixingkong.R;
 import com.example.administrator.huashixingkong.adapter.ViewPagerAdapter;
