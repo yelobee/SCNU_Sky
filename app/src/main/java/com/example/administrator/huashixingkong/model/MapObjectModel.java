@@ -1,6 +1,7 @@
 package com.example.administrator.huashixingkong.model;
 
 import android.graphics.drawable.Drawable;
+import com.example.administrator.huashixingkong.R;
 import android.location.Location;
 
 public class MapObjectModel 
@@ -10,13 +11,17 @@ public class MapObjectModel
 	private int id;
 	private int icon_id;
 	private String caption;
+	private int detailed;
+	private String type;
 	private Location location;
+
 	
 	public MapObjectModel(int id, Location location,int icon, String caption)
 	{
 		this.location = location;
 		this.setIcon_id(icon);
 		this.caption = caption;
+		this.detailed=0;
 		this.id = id;
 	}
 	
@@ -27,6 +32,29 @@ public class MapObjectModel
 		this.x = x;
 		this.y = y;
 		this.caption = caption;
+		this.detailed=0;
+	}
+
+	public MapObjectModel(int id,int x,int y,int icon,String caption,int detailed){
+		this.id=id;
+		this.setIcon_id(icon);
+		this.x=x;
+		this.y=y;
+		this.caption=caption;
+		this.detailed=detailed;
+	}
+	public MapObjectModel(BuildingPositions bp){
+		this.id=bp.getId();
+		if (bp.getPng_type().equals("d")) {
+			this.setIcon_id(R.drawable.map_icon_double_temp);
+		}else {
+			this.setIcon_id(R.drawable.map_icon_single_temp);
+		}
+		this.x=bp.getSreen_x();
+		this.y=bp.getSreen_y();
+		this.caption=bp.getDesc();
+		this.detailed=bp.getDetailed();
+		this.type=bp.getType();
 	}
 
 	public int getId() 
@@ -67,4 +95,19 @@ public class MapObjectModel
 	}
 
 
+	public int getDetailed() {
+		return detailed;
+	}
+
+	public void setDetailed(int detailed) {
+		this.detailed = detailed;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
 }

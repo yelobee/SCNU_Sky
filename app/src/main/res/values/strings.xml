@@ -28,4 +28,8 @@
     <string name="title_activity_act">ActActivity</string>
     <string name="title_activity_reply">ReplyActivity</string>
     <string name="discuss_item_title">标题</string>
+
+    <string name="title_activity_position_detail">Position_detail</string>
+    <string name="desc_shrinkup">收起</string>
+    <string name="desc_spread">显示更多</string>
 </resources>

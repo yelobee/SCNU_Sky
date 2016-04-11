@@ -87,6 +87,11 @@
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
             android:value="WSdc6hPIjYsCWtET0MwF0eW7bGHWVHoq" />
+
+        <activity
+            android:name=".activity.PositionDetailActivity"
+            android:label="@string/title_activity_position_detail" >
+        </activity>
     </application>
 
 </manifest>

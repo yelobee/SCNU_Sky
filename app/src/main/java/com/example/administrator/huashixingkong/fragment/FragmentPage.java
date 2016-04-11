@@ -1,12 +1,14 @@
 package com.example.administrator.huashixingkong.fragment;
 
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -18,9 +20,14 @@ import android.view.ViewGroup;
 
 
 import com.example.administrator.huashixingkong.R;
+import com.example.administrator.huashixingkong.activity.PositionDetailActivity;
+import com.example.administrator.huashixingkong.model.BuildingPositions;
 import com.example.administrator.huashixingkong.model.MapObjectContainer;
 import com.example.administrator.huashixingkong.model.MapObjectModel;
+import com.example.administrator.huashixingkong.model.PositionData;
 import com.example.administrator.huashixingkong.popup.TextPopup;
+import com.example.administrator.huashixingkong.tools.TxtDataController;
+import com.google.gson.Gson;
 import com.ls.widgets.map.MapWidget;
 import com.ls.widgets.map.config.GPSConfig;
 import com.ls.widgets.map.config.MapGraphicsConfig;
@@ -40,10 +47,20 @@ import com.ls.widgets.map.utils.PivotFactory.PivotPosition;
 import android.view.View.OnTouchListener;
 import android.widget.RelativeLayout;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
 import android.os.Handler;
+import android.widget.Toast;
 
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
@@ -51,12 +68,16 @@ import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.location.LocationClientOption.LocationMode;
 
+import org.apache.http.util.EncodingUtils;
+
 
 public class FragmentPage extends Fragment implements OnMapTouchListener, MapEventsListener, BDLocationListener {
 
     private View view;
 
-    public static final int Map_ID=1;
+    private static final int Map_ID=1;
+    private static final int Sky_Map_ID=2;
+    private static final int BackGround_Map_ID=3;
     private static final int MIN_TIME_INTERVAL = 0;
     private static final int MIN_DISTANCE_IN_METERS = 0;
     private static final String TAG = "offlineMap";
@@ -65,10 +86,14 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
     public final long LAYER2_ID=10;
     public final int position_id=112;
 
+    public final long SKY_LAYER1_ID=7;
+
     private int nextObjectId;
     private int pinHeight;
 
     private MapWidget map=null;
+    private MapWidget skymap=null;
+    private MapWidget backgroundmap=null;
     private MapObject my_position=null;
     private PositionMarker myPosition=null;
 
@@ -84,6 +109,17 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
 
     private Handler mHandler=null;
 
+    //position json loading
+    private  String path="/scnu/map_positions_config.txt";//文件路径
+    private TxtDataController rd;
+    private Gson gson=new Gson();//gson对象
+    private String gsonData=null;//从文件或网络传来的json数据
+    private PositionData pData=null;//gson所转化的数据对象
+    private List<BuildingPositions> positionDatas=null;
+    private Thread mThread=null;// 用于下载在网络中positionList数据
+
+    private RelativeLayout layout;
+
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_fragment_page,container,false);
@@ -97,6 +133,65 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
 
         model = new MapObjectContainer();
 
+        mHandler=new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+                switch (msg.what) {
+                    case 1:
+                        myPosition.setAccuracy(msg.getData().getFloat(POSITION_RADIUS));
+
+                        Layer layer = map.getLayerById(LAYER2_ID);
+                        layer.setVisible(true);
+
+                        //Log.i(TAG,""+msg.getData().getDouble(POSITION_LAT)+" "+msg.getData().getDouble(POSITION_LONG)+" "+msg.getData().getFloat(POSITION_RADIUS));
+                        Location temp = new Location("test");
+                        temp.setLatitude(msg.getData().getDouble(POSITION_LAT));
+                        temp.setLongitude(msg.getData().getDouble(POSITION_LONG));
+
+                        myPosition.moveTo(temp);
+                        break;
+
+                    case 2:
+                        if (gsonData != null) {
+                            pData = gson.fromJson(gsonData, PositionData.class);
+                            positionDatas = pData.getPositions();
+                            MapObjectModel objectModel = null;
+                            //将json所得数据存入model中
+                            for (BuildingPositions bp : positionDatas) {
+                                objectModel = new MapObjectModel(bp);
+                                model.addObject(objectModel);
+                                addNotScalableMapObject(objectModel, map.getLayerById(LAYER2_ID));
+                            }
+                        }
+                        break;
+
+                    case 3:
+                        //zoomout,隐藏map，及其layer，关闭用户定位，显示skymap & bringtofront
+                        map.getLayerById(LAYER1_ID).setVisible(false);
+                        map.getLayerById(LAYER2_ID).setVisible(false);
+                        mLocationClient.stop();
+                        //在隐藏map前，需clearAnimation，否则会隐藏无效
+                        map.clearAnimation();
+                        map.setVisibility(View.GONE);
+                        skymap.setVisibility(View.VISIBLE);
+                        layout.bringChildToFront(skymap);
+                        skymap.zoomOut();
+                        break;
+                    case 4:
+                        //zoomin,隐藏skymap，并显示map，及其layer，并启动定位，最后bringtofront
+                        map.getLayerById(LAYER1_ID).setVisible(true);
+                        map.getLayerById(LAYER2_ID).setVisible(true);
+                        mLocationClient.start();
+                        //在隐藏map前，需clearAnimation，否则会隐藏无效
+                        skymap.setVisibility(View.GONE);
+                        map.setVisibility(View.VISIBLE);
+                        layout.bringChildToFront(backgroundmap);
+                        layout.bringChildToFront(map);
+                        map.zoomIn();
+                        break;
+                }
+            }
+        };
         initMap(savedInstanceState);
         initModel();
         initMapObjects();
@@ -109,25 +204,6 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
         //start LocationClient
         mLocationClient.start();
 
-        mHandler=new Handler(){
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-                if (msg.what==1) {
-                    myPosition.setAccuracy(msg.getData().getFloat(POSITION_RADIUS));
-
-                    Layer layer=map.getLayerById(LAYER2_ID);
-                    layer.setVisible(true);
-
-                    //Log.i(TAG,""+msg.getData().getDouble(POSITION_LAT)+" "+msg.getData().getDouble(POSITION_LONG)+" "+msg.getData().getFloat(POSITION_RADIUS));
-                    Location temp=new Location("test");
-                    temp.setLatitude(msg.getData().getDouble(POSITION_LAT));
-                    temp.setLongitude(msg.getData().getDouble(POSITION_LONG));
-
-                    myPosition.moveTo(temp);
-                }
-            }
-        };
 
 
         // Will show the position of the user on a map.
@@ -136,6 +212,7 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
         // Uncomment this if you are at Filitheyo island :)
 
         map.centerMap();
+        skymap.centerMap();
 
         return view;
     }
@@ -144,12 +221,19 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
     @Override
     public void onPause() {
         super.onPause();
+        mLocationClient.stop();
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        mLocationClient.start();
+    }
 
     @Override
     public void onStop() {
         super.onStop();
+        mLocationClient.stop();
     }
 
     //baiduSDK
@@ -170,8 +254,16 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
         map = new MapWidget(savedInstanceState, this.getActivity(),
                 "map", // root name of the map under assets folder.
                 12); // initial zoom level
+        skymap = new MapWidget(savedInstanceState, this.getActivity(),
+                "scnusky", // root name of the map under assets folder.
+                12); // initial zoom level
+        backgroundmap = new MapWidget(savedInstanceState, this.getActivity(),
+                "background", // root name of the map under assets folder.
+                12); // initial zoom level
 
         map.setId(Map_ID);
+        skymap.setId(Sky_Map_ID);
+        backgroundmap.setId(BackGround_Map_ID);
 
         OfflineMapConfig config = map.getConfig();
         config.setPinchZoomEnabled(true); // Sets pinch gesture to zoom
@@ -191,23 +283,67 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
         graphicsConfig.setDotPointerDrawableId(R.drawable.round_pointer);
         graphicsConfig.setArrowPointerDrawableId(R.drawable.arrow_pointer);
 
-         RelativeLayout layout=(RelativeLayout) view.findViewById(R.id.rootLayout);
-        // Adding the map to the layout
-        layout.addView(map, 0);
-        layout.setBackgroundColor(Color.parseColor("#EEF7F5"));
+        //skymap
+        OfflineMapConfig config2=skymap.getConfig();
+        config2.setFlingEnabled(true);
+        config2.setPinchZoomEnabled(true);
+        config2.setMinZoomLevelLimit(12);
+        config2.setMinZoomLevelLimit(12);
+        config2.setZoomBtnsVisible(true);
 
+        //backgroundmap
+        OfflineMapConfig config3=backgroundmap.getConfig();
+        config3.setFlingEnabled(false);
+        config3.setPinchZoomEnabled(false);
+        config3.setMinZoomLevelLimit(12);
+        config3.setMinZoomLevelLimit(12);
+        config3.setZoomBtnsVisible(false);
+
+        // Adding the map to the layout
+//        RelativeLayout layout=(RelativeLayout) findViewById(R.id.rootLayout);
+        layout=(RelativeLayout) view.findViewById(R.id.rootLayout);
+        layout.addView(map, 0);
+        layout.addView(skymap, 1);
+        layout.addView(backgroundmap, 2);
+        layout.setBackgroundColor(Color.parseColor("#EEF7F5"));
+        skymap.setVisibility(View.GONE);
+        layout.bringChildToFront(map);
 
         // Adding layers in order to put there some map objects
         map.createLayer(LAYER1_ID); // you will need layer id's in order to access particular layer
         map.createLayer(LAYER2_ID);
+
+        skymap.createLayer(SKY_LAYER1_ID);
     }
 
     private void initModel(){
-        MapObjectModel objectModel=new MapObjectModel(0, 1230,1240, R.drawable.map_icon_building, "第一课室");
-        model.addObject(objectModel);
-        objectModel=new MapObjectModel(1, 1990, 1020,R.drawable.map_icon_kids, "陶园");
-        model.addObject(objectModel);
-
+        //先监测本地是否有缓存数据，有即读取并显示，无则开启线程下载显示，并将下载所得的json数据缓存起来
+        File file = new File(Environment.getExternalStorageDirectory()
+                .getPath() + path);
+        rd = new TxtDataController(path);
+        // 若数据文件在本地，直接读取
+        if (file.exists()) {
+            try {
+                gsonData = rd.getData();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            Message msg = new Message();
+            msg.what = 2;
+            mHandler.sendMessage(msg);
+        }
+        // 若文件不在本地，开线程下载json文件
+        else {
+            new Thread(runnable).start();
+            if (mThread == null) {
+                mThread = new Thread(runnable);
+                mThread.start();
+            } else {
+                Toast.makeText(getActivity().getApplicationContext(), "线程已启动",
+                        Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     private void initMapObjects(){
@@ -222,6 +358,8 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
         addMapPositionObject(layer2);
         layer2.setVisible(false);
 
+        //skymap的layer
+        Layer skylayer1=skymap.getLayerById(SKY_LAYER1_ID);
     }
 
 
@@ -309,6 +447,18 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
             }
         });
 
+        skymap.addMapEventsListener(this);
+
+        skymap.addMapEventsListener(this);
+
+        skymap.setOnMapScrolledListener(new OnMapScrollListener() {
+
+            @Override
+            public void onScrolledEvent(MapWidget v, MapScrolledEvent event)
+            {
+                handleOnMapScroll(v, event);
+            }
+        });
     }
 
     private void handleOnMapScroll(MapWidget v, MapScrolledEvent event)
@@ -362,10 +512,14 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
                 int y = yToScreenCoords(objectModel.getY()) - imgHeight;
 
                 // Show it
-                showLocationsPopup(x, y, objectModel.getCaption());
+                if (objectModel.getDetailed()==1) {
+                    showLocationsPopup(x, y, objectModel.getCaption(),objectModel.getId());
+                }else {
+                    showLocationPopUpWithoutArrow(x, y, objectModel.getCaption());
+                }
             } else {
                 // This is a case when we want to show popup where the user has touched.
-                showLocationsPopup(xInScreenCoords, yInScreenCoords, "Shows where user touched");
+                showLocationPopUpWithoutArrow(xInScreenCoords, yInScreenCoords, "Shows where user touched");
             }
 
             // Hint: If user touched more than one object you can show the dialog in which ask
@@ -378,7 +532,7 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
         }
     }
 
-    private void showLocationsPopup(int x, int y, String text)
+    private void showLocationsPopup(int x, int y, String text,final int position_id)
     {
         RelativeLayout mapLayout = (RelativeLayout) view.findViewById(R.id.rootLayout);
 
@@ -388,6 +542,42 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
         }
 
         ((TextPopup) mapObjectInfoPopup).setIcon((BitmapDrawable) getResources().getDrawable(R.drawable.map_popup_arrow));
+        ((TextPopup) mapObjectInfoPopup).setText(text);
+
+        mapObjectInfoPopup.setOnClickListener(new OnTouchListener()
+        {
+            public boolean onTouch(View v, MotionEvent event)
+            {
+                Intent intent=new Intent();
+                intent.setClass(getActivity(),PositionDetailActivity.class);
+                intent.putExtra("position_id",position_id);
+                startActivity(intent);
+
+                if (event.getAction() == MotionEvent.ACTION_UP)
+                {
+                    if (mapObjectInfoPopup != null)
+                    {
+                        ((TextPopup) mapObjectInfoPopup).removeIcon();
+                        mapObjectInfoPopup.hide();
+                    }
+                }
+
+                return false;
+            }
+        });
+
+        ((TextPopup) mapObjectInfoPopup).show(mapLayout, x, y);
+    }
+
+    private void showLocationPopUpWithoutArrow(int x,int y, String text)
+    {
+        RelativeLayout mapLayout = (RelativeLayout) view.findViewById(R.id.rootLayout);
+
+        if (mapObjectInfoPopup != null)
+        {
+            mapObjectInfoPopup.hide();
+        }
+
         ((TextPopup) mapObjectInfoPopup).setText(text);
 
         mapObjectInfoPopup.setOnClickListener(new OnTouchListener() {
@@ -401,7 +591,7 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
                 return false;
             }
         });
-
+        ((TextPopup) mapObjectInfoPopup).removeIcon();
         ((TextPopup) mapObjectInfoPopup).show(mapLayout, x, y);
     }
 
@@ -430,6 +620,11 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
         if (mapObjectInfoPopup != null) {
             mapObjectInfoPopup.hide();
         }
+        if (skymap.getZoomLevel()==12) {
+            Message message=new Message();
+            message.what=4;
+            mHandler.sendMessage(message);
+        }
     }
 
     @Override
@@ -449,6 +644,12 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
     @Override
     public void onPostZoomOut() {
         Log.i(TAG, "onPostZoomOut()");
+        if (map.getZoomLevel()==10 && (skymap.getZoomLevel()==12||skymap.getZoomLevel()==13)) {
+            //layout.removeView(map);
+            Message message=new Message();
+            message.what=3;
+            mHandler.sendMessage(message);
+        }
     }
 
     @Override
@@ -471,4 +672,51 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
             mHandler.sendMessage(msg);
         }
     }
+
+
+    // 负责下载网络中的json数据
+    Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            // TODO Auto-generated method stub
+            URL url;
+            BufferedReader br;
+            try {
+                Log.i("DownloadPositionData", "begin to download");
+                url = new URL(
+                        "http://128.199.107.78:8080/scnu_sky_material/scnu_sky/map_positions_config.txt");
+                URLConnection ucon = url.openConnection();
+                InputStream is = ucon.getInputStream();
+                BufferedInputStream bis = new BufferedInputStream(is);
+                ByteArrayOutputStream bos=new ByteArrayOutputStream();
+                byte[] buffer = new byte[1024];
+                int current = 0;
+                while ((current = bis.read(buffer)) != -1) {
+                    bos.write(buffer, 0, current);
+                }
+                gsonData = EncodingUtils.getString(bos.toByteArray(), "UTF-8");
+                //将下载所得的gsonData缓存起来。
+                rd.writeData(gsonData);
+                // Log.i("test", "" + gsonData);
+            } catch (MalformedURLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    // TODO Auto-generated method stub
+                    Log.i("DownloadPositionData", "download compelete");
+                    Message msg = new Message();
+                    msg.what = 2;
+                    mHandler.sendMessage(msg);
+                }
+            });
+        }
+
+    };
+
 }
