@@ -72,7 +72,7 @@ public class SimpleClient {
                  * filename是文件的名字，包含后缀名的 比如:abc.png
                  */
 
-                sb.append("Content-Disposition: form-data; name=\"img\"; filename=\""
+                sb.append("Content-Disposition: form-data; name=\" \"; filename=\""
                         + file.getName() + "\"" + LINE_END);
                 sb.append("Content-Type: application/octet-stream; charset="
                         + CHARSET + LINE_END);
