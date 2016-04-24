@@ -548,7 +548,9 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
         {
             public boolean onTouch(View v, MotionEvent event)
             {
+
                 Intent intent=new Intent();
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                 intent.setClass(getActivity(),PositionDetailActivity.class);
                 intent.putExtra("position_id",position_id);
                 startActivity(intent);

@@ -143,4 +143,23 @@ public class JsonAnalysis {
         return list;
     }
 
+    public static ArrayList<HashMap<String,Object>> PositionDetailAnalysis(String jsonStr)
+            throws JSONException {
+        /******************* 解析 ***********************/
+        JSONArray jsonArray;
+        // 初始化list数组对象
+        ArrayList<HashMap<String, Object>> list = new ArrayList<>();
+        jsonArray = new JSONArray(jsonStr);
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            // 初始化map数组对象
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("position_name",jsonObject.getString("position_name"));
+            map.put("position_detail", jsonObject.getString("position_detail"));
+            list.add(map);
+        }
+        //Log.d("abc",list.toString());
+        return list;
+    }
+
 }

@@ -122,4 +122,28 @@ public class HttpHelp {
         return null;
     }
 
+    //发送页面详情请求至服务器
+    public static String SaveDetail(int position_id){
+        String path="http://110.65.84.43:8080/scnu_sky/PositionDetailServlet";
+        Map<String,String> positionDetail=new HashMap<>();
+        positionDetail.put("position_id",String.valueOf(position_id));
+        try{
+            return SimpleClient.SendPostRequest(path,positionDetail,"utf-8");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    //发送进行中活动信息请求至服务器
+    public static String SaveActiveActivity(){
+        String path="http://110.65.84.43:8080/scnu_sky/ActiveActivityServlet";
+        try{
+            return SimpleClient.SendPostRequest(path,null,"utf-8");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

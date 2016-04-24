@@ -46,9 +46,9 @@ public class MapObjectModel
 	public MapObjectModel(BuildingPositions bp){
 		this.id=bp.getId();
 		if (bp.getPng_type().equals("d")) {
-			this.setIcon_id(R.drawable.map_icon_double_temp);
+			this.setIcon_id(R.drawable.map_icon_double);
 		}else {
-			this.setIcon_id(R.drawable.map_icon_single_temp);
+			this.setIcon_id(R.drawable.map_icon_single);
 		}
 		this.x=bp.getSreen_x();
 		this.y=bp.getSreen_y();
