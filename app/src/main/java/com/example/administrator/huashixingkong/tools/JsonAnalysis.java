@@ -162,4 +162,28 @@ public class JsonAnalysis {
         return list;
     }
 
+    public static ArrayList<HashMap<String,Object>> ActiveActivityAnalysis(String jsonStr)
+            throws JSONException {
+        /******************* 解析 ***********************/
+        JSONArray jsonArray;
+        // 初始化list数组对象
+        ArrayList<HashMap<String, Object>> list = new ArrayList<>();
+        jsonArray = new JSONArray(jsonStr);
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            // 初始化map数组对象
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("activity_id",jsonObject.getInt("activity_id"));
+            map.put("screen_x",jsonObject.getInt("screen_x"));
+            map.put("screen_y",jsonObject.getInt("screen_y"));
+            map.put("activity_title",jsonObject.getString("title"));
+            map.put("activity_content",jsonObject.getString("content"));
+            map.put("activity_begin_time", jsonObject.getString("begin_time"));
+            map.put("activity_begin_time", jsonObject.getString("end_time"));
+            map.put("active", jsonObject.getInt("active"));
+            list.add(map);
+        }
+        //Log.d("abc",list.toString());
+        return list;
+    }
 }

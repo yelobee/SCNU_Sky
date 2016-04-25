@@ -138,8 +138,9 @@ public class HttpHelp {
     //发送进行中活动信息请求至服务器
     public static String SaveActiveActivity(){
         String path="http://110.65.84.43:8080/scnu_sky/ActiveActivityServlet";
+        Map<String,String> activeActivity=new HashMap<>();
         try{
-            return SimpleClient.SendPostRequest(path,null,"utf-8");
+            return SimpleClient.SendPostRequest(path,activeActivity,"utf-8");
         }catch (Exception e){
             e.printStackTrace();
         }

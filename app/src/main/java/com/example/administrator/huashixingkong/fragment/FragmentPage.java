@@ -21,13 +21,19 @@ import android.view.ViewGroup;
 
 import com.example.administrator.huashixingkong.R;
 import com.example.administrator.huashixingkong.activity.PositionDetailActivity;
+import com.example.administrator.huashixingkong.model.ActiveActivity;
+import com.example.administrator.huashixingkong.model.ActivityData;
 import com.example.administrator.huashixingkong.model.BuildingPositions;
 import com.example.administrator.huashixingkong.model.MapObjectContainer;
 import com.example.administrator.huashixingkong.model.MapObjectModel;
 import com.example.administrator.huashixingkong.model.PositionData;
+import com.example.administrator.huashixingkong.model.SkyStar;
 import com.example.administrator.huashixingkong.popup.TextPopup;
+import com.example.administrator.huashixingkong.tools.HttpHelp;
+import com.example.administrator.huashixingkong.tools.JsonAnalysis;
 import com.example.administrator.huashixingkong.tools.TxtDataController;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.ls.widgets.map.MapWidget;
 import com.ls.widgets.map.config.GPSConfig;
 import com.ls.widgets.map.config.MapGraphicsConfig;
@@ -37,6 +43,7 @@ import com.ls.widgets.map.events.MapTouchedEvent;
 import com.ls.widgets.map.events.ObjectTouchEvent;
 import com.ls.widgets.map.interfaces.Layer;
 import com.ls.widgets.map.interfaces.MapEventsListener;
+import com.ls.widgets.map.interfaces.OnMapDoubleTapListener;
 import com.ls.widgets.map.interfaces.OnMapScrollListener;
 import com.ls.widgets.map.interfaces.OnMapTouchListener;
 import com.ls.widgets.map.location.PositionMarker;
@@ -57,6 +64,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import android.os.Handler;
@@ -106,6 +114,7 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
     private static final String POSITION_RADIUS="position_radius";
     private LocationClient mLocationClient=null;
     private static final int SCAN_SPAN=5000;
+    private Location user_position=null;
 
     private Handler mHandler=null;
 
@@ -117,6 +126,19 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
     private PositionData pData=null;//gson所转化的数据对象
     private List<BuildingPositions> positionDatas=null;
     private Thread mThread=null;// 用于下载在网络中positionList数据
+
+    //activity
+    private ActivityData aData=null;
+    private List<ActiveActivity> activityDatas=null;
+
+    //sky
+    private TxtDataController readSkyData;
+    private String skypath="/scnu/scnu_sky.txt";//文件路径
+    private String skyData=null;
+    private List<SkyStar> skyStarList=null;
+    private MapObjectContainer skymodel;
+
+
 
     private RelativeLayout layout;
 
@@ -132,6 +154,7 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
         nextObjectId = 0;
 
         model = new MapObjectContainer();
+        skymodel=new MapObjectContainer();
 
         mHandler=new Handler(){
             @Override
@@ -147,6 +170,7 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
                         Location temp = new Location("test");
                         temp.setLatitude(msg.getData().getDouble(POSITION_LAT));
                         temp.setLongitude(msg.getData().getDouble(POSITION_LONG));
+                        user_position=temp;
 
                         myPosition.moveTo(temp);
                         break;
@@ -189,12 +213,41 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
                         layout.bringChildToFront(map);
                         map.zoomIn();
                         break;
+                    case 5:
+                        String activeActivityJson=(String)msg.obj;
+                        if (activeActivityJson!=null){
+                            //aData=gson.fromJson(activeActivityJson, new TypeToken<List<ActiveActivity>>(){}.getType());
+                            //activityDatas=aData.getActivitys();
+                            activityDatas=gson.fromJson(activeActivityJson, new TypeToken<List<ActiveActivity>>(){}.getType());
+                            MapObjectModel objectModel=null;
+                            for (ActiveActivity aa:activityDatas){
+                                objectModel=new MapObjectModel(aa);
+                                model.addObject(objectModel);
+                                //addNotScalableMapObject(objectModel,map.getLayerById(LAYER2_ID));
+                                addActiveActivityMapObject(objectModel,map.getLayerById(LAYER2_ID));
+                            }
+
+                        }
+                        break;
+                    case 6:
+                        if (skyData!=null){
+                            skyStarList=gson.fromJson(skyData,new TypeToken<List<SkyStar>>(){}.getType());
+                            MapObjectModel objectModel=null;
+                            for (SkyStar ss:skyStarList){
+                                objectModel=new MapObjectModel(ss);
+                                skymodel.addObject(objectModel);
+                                addScnuSkyMapObject(objectModel,skymap.getLayerById(SKY_LAYER1_ID));
+                            }
+                        }
+                        break;
                 }
             }
         };
         initMap(savedInstanceState);
         initModel();
         initMapObjects();
+        initMapActivity();
+        initSky();
         initMapListeners();
 
 
@@ -289,7 +342,7 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
         config2.setPinchZoomEnabled(true);
         config2.setMinZoomLevelLimit(12);
         config2.setMinZoomLevelLimit(12);
-        config2.setZoomBtnsVisible(true);
+        config2.setZoomBtnsVisible(false);
 
         //backgroundmap
         OfflineMapConfig config3=backgroundmap.getConfig();
@@ -358,8 +411,26 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
         addMapPositionObject(layer2);
         layer2.setVisible(false);
 
+    }
+
+    private void initMapActivity(){
+//        Layer layer=map.getLayerById(LAYER1_ID);
+//        addNotScalableMapObject(1705,650,R.drawable.maps_blue_dot,layer);
+        new Thread(new activityMessage()).start();
+    }
+
+    private void initSky(){
         //skymap的layer
+        readSkyData=new TxtDataController(skypath);
         Layer skylayer1=skymap.getLayerById(SKY_LAYER1_ID);
+        try {
+            skyData=readSkyData.getData();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+        Message msg=new Message();
+        msg.what=6;
+        mHandler.sendMessage(msg);
     }
 
 
@@ -430,35 +501,136 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
         nextObjectId += 1;
     }
 
+    //校园活动加载
+    private void addActiveActivityMapObject(MapObjectModel objectModel,Layer layer){
+        Drawable drawable = getResources().getDrawable(objectModel.getIcon_id());
+        pinHeight = drawable.getIntrinsicHeight();
+        MapObject object1 = new MapObject(Integer.valueOf(objectModel.getId()), // id, will be passed to the listener when user clicks on it
+                drawable,
+                new Point(objectModel.getX(), objectModel.getY()), // coordinates in original map coordinate system.
+                // Pivot point of center of the drawable in the drawable's coordinate system.
+                PivotFactory.createPivotPoint(drawable, PivotPosition.PIVOT_CENTER),
+                true, // This object will be passed to the listener
+                true); // is not scalable. It will have the same size on each zoom level
+        layer.addMapObject(object1);
+    }
+
+    private void addScnuSkyMapObject(MapObjectModel objectModel,Layer layer){
+        Drawable drawable = getResources().getDrawable(objectModel.getIcon_id());
+        pinHeight = drawable.getIntrinsicHeight();
+        MapObject object1 = new MapObject(Integer.valueOf(objectModel.getId()), // id, will be passed to the listener when user clicks on it
+                drawable,
+                new Point(objectModel.getX(), objectModel.getY()), // coordinates in original map coordinate system.
+                // Pivot point of center of the drawable in the drawable's coordinate system.
+                PivotFactory.createPivotPoint(drawable, PivotPosition.PIVOT_CENTER),
+                true, // This object will be passed to the listener
+                true); // is not scalable. It will have the same size on each zoom level
+        layer.addMapObject(object1);
+    }
+
 
     private void initMapListeners(){
-        // In order to receive MapObject touch events we need to set listener
+        //校园活动地图点击事件
+        // 为了接收MapObject触摸事件,需要设置地图点击监听器
         map.setOnMapTouchListener(this);
 
-        // In order to receive pre and post zoom events we need to set MapEventsListener
+        //为了接收预先/准确zoom事件,需要设置地图事件监听器
         map.addMapEventsListener(this);
 
         // In order to receive map scroll events we set OnMapScrollListener
-        map.setOnMapScrolledListener(new OnMapScrollListener()
-        {
-            public void onScrolledEvent(MapWidget v, MapScrolledEvent event)
-            {
+        //为了接收地图滚动事件,需要设置地图滚动监听器
+        map.setOnMapScrolledListener(new OnMapScrollListener() {
+            public void onScrolledEvent(MapWidget v, MapScrolledEvent event) {
                 handleOnMapScroll(v, event);
             }
         });
+        //
+        map.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if (user_position != null) {
+                    map.scrollMapTo(user_position);
+                    return true;
+                }
+                return false;
+            }
+        });
 
-        skymap.addMapEventsListener(this);
 
+        //华师星空点击事件
         skymap.addMapEventsListener(this);
 
         skymap.setOnMapScrolledListener(new OnMapScrollListener() {
 
             @Override
-            public void onScrolledEvent(MapWidget v, MapScrolledEvent event)
-            {
+            public void onScrolledEvent(MapWidget v, MapScrolledEvent event) {
                 handleOnMapScroll(v, event);
             }
         });
+
+        skymap.setOnDoubleTapListener(new OnMapDoubleTapListener() {
+            @Override
+            public boolean onDoubleTap(MapWidget v, MapTouchedEvent event) {
+                return true;
+            }
+        });
+
+        skymap.setOnMapTouchListener(new OnMapTouchListener() {
+            @Override
+            public void onTouch(MapWidget v, MapTouchedEvent event) {
+                // Get touched object events from the MapTouchEvent
+                ArrayList<ObjectTouchEvent> touchedObjs = event.getTouchedObjectIds();
+                if (touchedObjs.size()>0) {
+                    int xInMapCoords = event.getMapX();
+                    int yInMapCoords = event.getMapY();
+                    int xInScreenCoords = event.getScreenX();
+                    int yInScreenCoords = event.getScreenY();
+
+                    ObjectTouchEvent objectTouchEvent = event.getTouchedObjectIds().get(0);
+
+                    // Due to a bug this is not actually the layer id, but index of the layer in layers array.
+                    // Will be fixed in the next release.
+                    long layerId = objectTouchEvent.getLayerId();
+                    Integer objectId = (Integer)objectTouchEvent.getObjectId();
+
+                    // User has touched one or more map object
+                    // We will take the first one to show in the toast message.
+                    String message = "You touched the object with id: " + objectId + " on layer: " + layerId +
+                            " mapX: " + xInMapCoords + " mapY: " + yInMapCoords + " screenX: " + xInScreenCoords + " screenY: " +
+                            yInScreenCoords;
+
+                    Log.d(TAG, message);
+                    MapObjectModel objectModel = skymodel.getObjectById(objectId.intValue());
+
+                    if (objectModel != null) {
+                        // This is a case when we want to show popup info exactly above the pin image
+
+                        float density = getResources().getDisplayMetrics().density;
+                        int imgHeight = (int) (pinHeight / density / 2);
+
+                        // Calculating position of popup on the screen
+                        int x = xToScreenCoords_sky(objectModel.getX());
+                        int y = yToScreenCoords_sky(objectModel.getY()) - imgHeight;
+
+                        // Show it
+                        showLocationPopUpWithoutArrow(x, y, objectModel.getCaption());
+
+                    } else {
+                        // This is a case when we want to show popup where the user has touched.
+                        showLocationPopUpWithoutArrow(xInScreenCoords, yInScreenCoords, "Shows where user touched");
+                    }
+
+                    // Hint: If user touched more than one object you can show the dialog in which ask
+                    // the user to select concrete object
+
+                } else {
+                    if (mapObjectInfoPopup != null) {
+                        mapObjectInfoPopup.hide();
+                    }
+                }
+            }
+        });
+
     }
 
     private void handleOnMapScroll(MapWidget v, MapScrolledEvent event)
@@ -512,6 +684,7 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
                 int y = yToScreenCoords(objectModel.getY()) - imgHeight;
 
                 // Show it
+                //detail/active
                 if (objectModel.getDetailed()==1) {
                     showLocationsPopup(x, y, objectModel.getCaption(),objectModel.getId());
                 }else {
@@ -612,6 +785,16 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
     private int yToScreenCoords(int mapCoord)
     {
         return (int)(mapCoord *  map.getScale() - map.getScrollY());
+    }
+
+    private int xToScreenCoords_sky(int mapCoord)
+    {
+        return (int)(mapCoord *  skymap.getScale() - skymap.getScrollX());
+    }
+
+    private int yToScreenCoords_sky(int mapCoord)
+    {
+        return (int)(mapCoord *  skymap.getScale() - skymap.getScrollY());
     }
 
 
@@ -720,5 +903,30 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
         }
 
     };
+
+    class activityMessage implements Runnable{
+
+        @Override
+        public void run() {
+            String result = null;
+            try {
+                result = HttpHelp.SaveActiveActivity();//请求服务器返回json字符
+                //可以用JsonAnalysis转换MAP
+//                ArrayList<HashMap<String,Object>> position_detail_list= JsonAnalysis.ActiveActivityAnalysis(result);
+//                position_name= (String) position_detail_list.get(0).get("position_name");
+//                position_detail= (String) position_detail_list.get(0).get("position_detail");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            Message msg = mHandler.obtainMessage();
+            if(result!=null){
+                //Toast.makeText(LoginActivity.this, "ok", Toast.LENGTH_SHORT).show();
+                Log.d("ActiveActivityMessage", "ok");
+                msg.what = 5;
+                msg.obj = result;
+                mHandler.sendMessage(msg);
+            }
+        }
+    }
 
 }
