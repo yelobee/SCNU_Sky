@@ -21,6 +21,7 @@ import android.view.ViewGroup;
 
 import com.example.administrator.huashixingkong.R;
 import com.example.administrator.huashixingkong.activity.PositionDetailActivity;
+import com.example.administrator.huashixingkong.activity.AnnounceActivity;
 import com.example.administrator.huashixingkong.model.ActiveActivity;
 import com.example.administrator.huashixingkong.model.ActivityData;
 import com.example.administrator.huashixingkong.model.BuildingPositions;
@@ -30,7 +31,6 @@ import com.example.administrator.huashixingkong.model.PositionData;
 import com.example.administrator.huashixingkong.model.SkyStar;
 import com.example.administrator.huashixingkong.popup.TextPopup;
 import com.example.administrator.huashixingkong.tools.HttpHelp;
-import com.example.administrator.huashixingkong.tools.JsonAnalysis;
 import com.example.administrator.huashixingkong.tools.TxtDataController;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -64,7 +64,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import android.os.Handler;
@@ -571,6 +570,10 @@ public class FragmentPage extends Fragment implements OnMapTouchListener, MapEve
         skymap.setOnDoubleTapListener(new OnMapDoubleTapListener() {
             @Override
             public boolean onDoubleTap(MapWidget v, MapTouchedEvent event) {
+                Intent intent=new Intent();
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                intent.setClass(getActivity(), AnnounceActivity.class);
+                startActivity(intent);
                 return true;
             }
         });

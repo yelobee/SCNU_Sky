@@ -92,6 +92,9 @@
             android:name=".activity.PositionDetailActivity"
             android:label="@string/title_activity_position_detail" >
         </activity>
+        <activity android:name=".activity.AnnounceActivity"
+            android:label="@string/title_activity_talk_to_sky">
+        </activity>
     </application>
 
 </manifest>
